@@ -1,2 +1,2 @@
-# Baby Steps v2
-Visual redesign matching the approved sonogram concept.
+# Baby Steps v3
+Clean functional redesign with a sonogram-only background. Service-worker caching is intentionally disabled during development.

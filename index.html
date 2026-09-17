@@ -1,1 +1,84 @@
-<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#6b303b"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Baby Steps"><link rel="manifest" href="manifest.webmanifest"><link rel="stylesheet" href="styles.css"><title>Baby Steps</title></head><body><main class="app"><header><div><h1>Baby Steps ♡</h1><p>for you, for our little one ♡</p></div></header><section class="card prenatal"><b>♡ TODAY'S PRENATAL</b><h2>Have you taken it? 💊</h2><button id="taken">♡ I took my prenatal</button><p id="status">Not marked yet</p></section><div class="grid"><section class="card greeting"><b>♥ BABY STEPS</b><h2>Good morning,<em>Microbia ♡</em></h2><hr><b>💌 A MESSAGE FROM DAD</b><p id="dadmsg">“I know some days are harder than others, but I want you to know I'm right here with you. You’re going to be an amazing mama. ♡”</p></section><div><section class="card"><b>📅 PREGNANCY</b><h3>Due date coming soon</h3><p>Once we know your due date, we’ll show your week, baby’s size, and countdown here.</p></section><section class="card"><b>♥ TODAY</b><h3 id="today">—</h3><p>One day at a time, Mama. ♡</p></section></div></div><section class="card dad"><h2>Dad's Corner ✍️</h2><p>Leave Microbia a little note.</p><form id="form"><textarea id="msg" maxlength="300" placeholder="Write something sweet for Mama..."></textarea><button>Save Dad's message ♡</button></form></section><footer>You’re doing amazing ♡</footer></main><script>today.textContent=new Date().toLocaleDateString(undefined,{weekday:'long',month:'long',day:'numeric'});taken.onclick=()=>{taken.textContent='✓ Prenatal taken today';taken.disabled=true;status.textContent='You did it, Mama! ♡'};form.onsubmit=e=>{e.preventDefault();let v=msg.value.trim();if(v){dadmsg.textContent='“'+v+'”';msg.value=''}};if('serviceWorker'in navigator)addEventListener('load',()=>navigator.serviceWorker.register('sw.js'));</script></body></html>
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#4a1d27">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Baby Steps">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="stylesheet" href="styles.css?v=3">
+<title>Baby Steps</title>
+</head>
+<body>
+<main class="shell">
+<header class="brand">
+  <div><h1>Baby Steps ♡</h1><p>for you, for our little one ♡</p></div>
+  <nav aria-label="Baby Steps">
+    <a class="active" href="#home">⌂ Home</a><a href="#journey">▣ Journey</a><a href="#messages">♡ Messages</a>
+  </nav>
+</header>
+
+<section id="home" class="card prenatal">
+  <div class="sectionline"><span>♡</span><b>TODAY'S PRENATAL</b><span class="badge">💊</span></div>
+  <h2>Have you taken it?</h2>
+  <button id="takenBtn">♡ I took my prenatal</button>
+  <p id="takenStatus" class="center" aria-live="polite">Not marked yet</p>
+</section>
+
+<div class="dashboard">
+  <section class="card greeting">
+    <div class="heart">♥</div>
+    <b>BABY STEPS</b>
+    <h2>Good morning,<em>Microbia ♡</em></h2>
+    <hr>
+    <div class="message-title"><span class="badge">💌</span><b>A MESSAGE FROM DAD</b></div>
+    <p id="dadMessage" class="quote">“I know some days are harder than others, but I want you to know I’m right here with you. You’re going to be an amazing mama. ♡”</p>
+  </section>
+  <div>
+    <section id="journey" class="card info">
+      <div class="message-title"><span class="badge">📅</span><b>PREGNANCY</b></div>
+      <h3>Due date coming soon</h3>
+      <p>Once we know your due date, we’ll show your week, baby’s size, and countdown here.</p>
+    </section>
+    <section class="card info">
+      <div class="message-title"><span class="badge">♥</span><b>TODAY</b></div>
+      <h3 id="today">—</h3>
+      <p>One day at a time, Mama. ♡</p>
+    </section>
+  </div>
+</div>
+
+<section id="messages" class="card dad">
+  <h2>Dad's Corner ✍️</h2>
+  <p>Leave Microbia a little note.</p>
+  <form id="messageForm">
+    <textarea id="messageInput" maxlength="300" rows="4" placeholder="Write something sweet for Mama..." aria-label="Message for Microbia"></textarea>
+    <button type="submit">Save Dad's message ♡</button>
+  </form>
+  <p id="messageStatus" class="center" aria-live="polite"></p>
+</section>
+
+<div class="quick">
+  <div class="card mini"><span class="badge">📖</span><div><b>LEARN</b><p>Articles, tips, and resources</p></div></div>
+  <div class="card mini"><span class="badge">📅</span><div><b>JOURNEY</b><p>Track milestones</p></div></div>
+  <div class="card mini"><span class="badge">♡</span><div><b>MESSAGES</b><p>Notes from Dad</p></div></div>
+</div>
+<footer>— &nbsp; You’re doing amazing ♡ &nbsp; —</footer>
+</main>
+<script>
+const d=new Date();
+document.getElementById('today').textContent=d.toLocaleDateString(undefined,{weekday:'long',month:'long',day:'numeric'});
+document.getElementById('takenBtn').addEventListener('click',function(){
+ this.textContent='✓ Prenatal taken today'; this.disabled=true;
+ document.getElementById('takenStatus').textContent='You did it, Mama! ♡';
+});
+document.getElementById('messageForm').addEventListener('submit',function(e){
+ e.preventDefault(); const i=document.getElementById('messageInput'), v=i.value.trim();
+ if(!v){document.getElementById('messageStatus').textContent='Write a message first ♡';return;}
+ document.getElementById('dadMessage').textContent='“'+v+'”'; i.value='';
+ document.getElementById('messageStatus').textContent='Message updated ♡';
+});
+</script>
+</body></html>
