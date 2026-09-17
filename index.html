@@ -120,6 +120,14 @@
   <p id="messageStatus" class="center" aria-live="polite"></p>
 </section>
 
+<section id="notifications" class="card info">
+  <div class="message-title"><span class="badge">🔔</span><b>NOTIFICATIONS</b></div>
+  <h3>Baby Steps reminders ♡</h3>
+  <p>Turn on notifications on this device for prenatal, appointment, and message reminders.</p>
+  <button id="enableNotificationsBtn" type="button">Enable Notifications ♡</button>
+  <p id="notificationStatus" class="center" aria-live="polite">Notifications are off on this device.</p>
+</section>
+
 <div class="quick">
   <div class="card mini"><span class="badge">📖</span><div><b>LEARN</b><p>Articles, tips, and resources</p></div></div>
   <div class="card mini"><span class="badge">📅</span><div><b>JOURNEY</b><p>Track milestones</p></div></div>
@@ -131,6 +139,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-app.js";
 import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-auth.js";
 import { getFirestore, doc, setDoc, onSnapshot, serverTimestamp, collection, addDoc, query, orderBy, deleteDoc } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-firestore.js";
+import { getMessaging, getToken, onMessage, isSupported } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-messaging.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyCwfU01fplKAmMjF9AGrpfh3_dID11jpyQ",
@@ -142,6 +151,8 @@ const firebaseConfig = {
 };
 const DAD_UID = "quwZWCn1IoUGT5NwEygn6eKCxTE3";
 const app=initializeApp(firebaseConfig), auth=getAuth(app), db=getFirestore(app);
+const VAPID_KEY="BORWgJuVa6KyOQYUV6SzOAUSStVhl3RZPqyR4eWLBezodpwfPKF8oWDEW9_FW4kxeVdjInmYOaPzxbbwUQWkCzk";
+let messaging=null, messagingSupported=false;
 const $=id=>document.getElementById(id);
 const todayKey=()=>new Date().toLocaleDateString('en-CA');
 let unsubMessage=null, unsubPrenatal=null, unsubPregnancy=null, unsubMilestones=null, unsubAppointments=null;
@@ -176,6 +187,24 @@ onAuthStateChanged(auth,user=>{
  unsubMilestones=onSnapshot(query(collection(db,'milestones'),orderBy('date','desc')),snap=>renderTimeline('milestoneList',snap,'milestone'));
  unsubAppointments=onSnapshot(query(collection(db,'appointments'),orderBy('date','asc')),snap=>renderTimeline('appointmentList',snap,'appointment'));
 });
+
+async function prepareMessaging(){
+ const btn=$('enableNotificationsBtn');
+ if(!('Notification' in window)||!('serviceWorker' in navigator)||!(await isSupported())){btn.disabled=true;$('notificationStatus').textContent='Push notifications are not supported on this browser.';return;}
+ messagingSupported=true; messaging=getMessaging(app);
+ if(Notification.permission==='granted') $('notificationStatus').textContent='Notifications are allowed on this device ♡';
+ else if(Notification.permission==='denied') $('notificationStatus').textContent='Notifications are blocked in your browser settings.';
+}
+async function registerPushToken(){
+ if(!auth.currentUser||!messagingSupported||!messaging)return; const btn=$('enableNotificationsBtn'); btn.disabled=true; $('notificationStatus').textContent='Turning on notifications…';
+ try{const permission=await Notification.requestPermission(); if(permission!=='granted'){ $('notificationStatus').textContent=permission==='denied'?'Notifications were blocked. You can change this in browser settings.':'Notifications were not enabled.'; return;}
+ const registration=await navigator.serviceWorker.register('./sw.js'); await navigator.serviceWorker.ready; const token=await getToken(messaging,{vapidKey:VAPID_KEY,serviceWorkerRegistration:registration}); if(!token)throw new Error('No FCM token');
+ const digest=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(token)); const tokenId=Array.from(new Uint8Array(digest)).map(b=>b.toString(16).padStart(2,'0')).join('').slice(0,40);
+ await setDoc(doc(db,'pushTokens',tokenId),{token,uid:auth.currentUser.uid,role:auth.currentUser.uid===DAD_UID?'Dad':'Microbia',enabled:true,preferences:{prenatal:true,appointments:true,messages:true},updatedAt:serverTimestamp()},{merge:true}); $('notificationStatus').textContent='Notifications are on for this device ♡';
+ }catch(err){console.error(err);$('notificationStatus').textContent='Could not enable notifications. Try again ♡';}finally{btn.disabled=false;}
+}
+$('enableNotificationsBtn').addEventListener('click',registerPushToken);
+prepareMessaging().then(()=>{if(messaging)onMessage(messaging,payload=>{const title=payload.notification?.title||payload.data?.title||'Baby Steps ♡';const body=payload.notification?.body||payload.data?.body||'You have a new Baby Steps reminder.';if(Notification.permission==='granted')new Notification(title,{body});});});
 
 $('takenBtn').addEventListener('click',async()=>{
  if(!auth.currentUser)return;
