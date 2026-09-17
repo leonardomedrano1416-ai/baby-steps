@@ -1,0 +1,9 @@
+{
+  "name": "Baby Steps",
+  "short_name": "Baby Steps",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#f9e3df",
+  "theme_color": "#b95778",
+  "description": "A private pregnancy companion for Microbia and Dad."
+}

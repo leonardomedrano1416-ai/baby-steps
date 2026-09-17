@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#b95778">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Baby Steps">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="stylesheet" href="styles.css">
+  <title>Baby Steps</title>
+</head>
+<body>
+  <main class="app">
+    <header class="hero">
+      <div>
+        <div class="eyebrow">BABY STEPS</div>
+        <h1>Good morning, <span>Microbia</span> ❤️</h1>
+        <p>Dad is thinking about you today.</p>
+      </div>
+      <div class="baby-icon" aria-hidden="true">🍼</div>
+    </header>
+
+    <section class="card prenatal">
+      <div class="row">
+        <div>
+          <div class="eyebrow">TODAY'S PRENATAL</div>
+          <h2>Have you taken it?</h2>
+        </div>
+        <div class="pill" aria-hidden="true">💊</div>
+      </div>
+      <button id="takenBtn" class="primary">❤️ I took my prenatal</button>
+      <div id="takenStatus" class="status" aria-live="polite">Not marked yet</div>
+    </section>
+
+    <section class="card">
+      <div class="eyebrow">A MESSAGE FROM DAD 💌</div>
+      <p id="dadMessage" class="message">“I know some days are harder than others, but I want you to know I'm right here with you. You’re going to be an amazing mama. ❤️”</p>
+    </section>
+
+    <div class="two-col">
+      <section class="card small-card">
+        <div class="eyebrow">PREGNANCY</div>
+        <h3>Due date coming soon</h3>
+        <p>Once we know the due date, Baby Steps can calculate the week and countdown.</p>
+      </section>
+      <section class="card small-card">
+        <div class="eyebrow">TODAY</div>
+        <h3 id="today">—</h3>
+        <p>One day at a time, Mama. ♡</p>
+      </section>
+    </div>
+
+    <section class="card">
+      <div class="row">
+        <div>
+          <h2>Dad's Corner</h2>
+          <p>Leave Microbia a little note.</p>
+        </div>
+        <div class="pill" aria-hidden="true">✍️</div>
+      </div>
+      <form id="messageForm">
+        <textarea id="messageInput" maxlength="300" rows="4" placeholder="Write something sweet for Mama..." aria-label="Message for Microbia"></textarea>
+        <button class="primary" type="submit">Save Dad's message ❤️</button>
+      </form>
+      <div id="messageStatus" class="status" aria-live="polite"></div>
+    </section>
+
+    <section class="card coming">
+      <strong>📱 Coming next</strong>
+      <p>We'll connect Baby Steps to real iPhone push notifications so Microbia can receive her daily prenatal reminder.</p>
+    </section>
+  </main>
+
+  <script>
+    const today = new Date();
+    document.getElementById("today").textContent =
+      today.toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" });
+
+    const takenBtn = document.getElementById("takenBtn");
+    const takenStatus = document.getElementById("takenStatus");
+
+    takenBtn.addEventListener("click", () => {
+      takenStatus.textContent = "Prenatal marked as taken ✓ You did it, Mama! ❤️";
+      takenBtn.textContent = "✓ Prenatal taken today";
+      takenBtn.disabled = true;
+    });
+
+    document.getElementById("messageForm").addEventListener("submit", (event) => {
+      event.preventDefault();
+      const input = document.getElementById("messageInput");
+      const value = input.value.trim();
+      const status = document.getElementById("messageStatus");
+      if (!value) {
+        status.textContent = "Write a message first ❤️";
+        return;
+      }
+      document.getElementById("dadMessage").textContent = "“" + value + "”";
+      input.value = "";
+      status.textContent = "Dad's message updated. 💌";
+    });
+
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", () => navigator.serviceWorker.register("sw.js"));
+    }
+  </script>
+</body>
+</html>
