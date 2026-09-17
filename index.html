@@ -8,7 +8,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Baby Steps">
 <link rel="manifest" href="manifest.webmanifest">
-<link rel="stylesheet" href="styles.css?v=6">
+<link rel="stylesheet" href="styles.css?v=6.1">
 <title>Baby Steps</title>
 </head>
 <body>
@@ -48,10 +48,29 @@
     <p id="dadMessage" class="quote">“I know some days are harder than others, but I want you to know I’m right here with you. You’re going to be an amazing mama. ♡”</p>
   </section>
   <div>
-    <section id="journey" class="card info">
+    <section id="pregnancy" class="card info">
       <div class="message-title"><span class="badge">📅</span><b>PREGNANCY</b></div>
-      <h3>Due date coming soon</h3>
-      <p>Once we know your due date, we’ll show your week, baby’s size, and countdown here.</p>
+      <div id="dueUnknown">
+        <h3>Waiting for our first appointment ♡</h3>
+        <p>Once the doctor gives us an estimated due date, we can add it here.</p>
+        <button id="showDueDateBtn" class="secondary-btn" type="button">Add due date ♡</button>
+      </div>
+      <div id="pregnancyStats" hidden>
+        <h3 id="pregnancyWeek">—</h3><p id="dueDateText"></p>
+        <div class="stat-grid">
+          <div><strong id="trimesterText">—</strong><span>Trimester</span></div>
+          <div><strong id="countdownText">—</strong><span>Days to go</span></div>
+          <div><strong id="babySizeText">—</strong><span>Baby size</span></div>
+        </div>
+        <p id="babyWeekText" class="baby-week-copy"></p>
+        <button id="editDueDateBtn" class="secondary-btn" type="button">Edit due date</button>
+      </div>
+      <form id="dueDateForm" class="due-date-form" hidden>
+        <label for="dueDateInput"><b>ESTIMATED DUE DATE</b></label>
+        <input id="dueDateInput" type="date" required>
+        <div class="form-actions"><button type="submit">Save due date ♡</button><button id="cancelDueDateBtn" class="secondary-btn" type="button">Cancel</button></div>
+        <p id="dueDateStatus" class="center" aria-live="polite"></p>
+      </form>
     </section>
     <section class="card info">
       <div class="message-title"><span class="badge">♥</span><b>TODAY</b></div>
@@ -60,6 +79,36 @@
     </section>
   </div>
 </div>
+
+<section id="journey" class="journey-wrap">
+  <div class="journey-heading"><span class="badge">🧸</span><div><b>OUR JOURNEY</b><h2>Little moments, big memories ♡</h2><p>Keep the milestones and appointments that make this journey ours.</p></div></div>
+  <div class="journey-grid">
+    <section class="card journey-card">
+      <div class="message-title"><span class="badge">♡</span><b>MILESTONES</b></div>
+      <form id="milestoneForm" class="stack-form">
+        <input id="milestoneTitle" maxlength="80" placeholder="First ultrasound, told our family..." required>
+        <input id="milestoneDate" type="date" required>
+        <textarea id="milestoneNote" maxlength="300" rows="3" placeholder="A little note about this memory ♡"></textarea>
+        <button type="submit">Add milestone ♡</button>
+      </form>
+      <p id="milestoneStatus" class="center" aria-live="polite"></p>
+      <div id="milestoneList" class="timeline-list"><p class="empty-state">No milestones yet. Our story is just beginning ♡</p></div>
+    </section>
+    <section class="card journey-card">
+      <div class="message-title"><span class="badge">🩺</span><b>APPOINTMENTS</b></div>
+      <form id="appointmentForm" class="stack-form">
+        <input id="appointmentTitle" maxlength="80" placeholder="First prenatal appointment" required>
+        <input id="appointmentDate" type="date" required>
+        <input id="appointmentTime" type="time">
+        <input id="appointmentLocation" maxlength="100" placeholder="Doctor / clinic (optional)">
+        <textarea id="appointmentNote" maxlength="300" rows="3" placeholder="Questions or things we want to remember ♡"></textarea>
+        <button type="submit">Add appointment ♡</button>
+      </form>
+      <p id="appointmentStatus" class="center" aria-live="polite"></p>
+      <div id="appointmentList" class="timeline-list"><p class="empty-state">No appointments added yet ♡</p></div>
+    </section>
+  </div>
+</section>
 
 <section id="messages" class="card dad dad-only" hidden>
   <h2>Dad's Corner ✍️</h2>
@@ -81,7 +130,7 @@
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-app.js";
 import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-auth.js";
-import { getFirestore, doc, getDoc, setDoc, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-firestore.js";
+import { getFirestore, doc, setDoc, onSnapshot, serverTimestamp, collection, addDoc, query, orderBy, deleteDoc } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyCwfU01fplKAmMjF9AGrpfh3_dID11jpyQ",
@@ -95,7 +144,7 @@ const DAD_UID = "quwZWCn1IoUGT5NwEygn6eKCxTE3";
 const app=initializeApp(firebaseConfig), auth=getAuth(app), db=getFirestore(app);
 const $=id=>document.getElementById(id);
 const todayKey=()=>new Date().toLocaleDateString('en-CA');
-let unsubMessage=null, unsubPrenatal=null, unsubPregnancy=null;
+let unsubMessage=null, unsubPrenatal=null, unsubPregnancy=null, unsubMilestones=null, unsubAppointments=null;
 
 $('today').textContent=new Date().toLocaleDateString(undefined,{weekday:'long',month:'long',day:'numeric'});
 
@@ -107,7 +156,7 @@ $('loginForm').addEventListener('submit', async e=>{
 $('signOutBtn').addEventListener('click',()=>signOut(auth));
 
 onAuthStateChanged(auth,user=>{
- if(unsubMessage) unsubMessage(); if(unsubPrenatal) unsubPrenatal(); if(unsubPregnancy) unsubPregnancy();
+ if(unsubMessage) unsubMessage(); if(unsubPrenatal) unsubPrenatal(); if(unsubPregnancy) unsubPregnancy(); if(unsubMilestones) unsubMilestones(); if(unsubAppointments) unsubAppointments();
  if(!user){ $('loginOverlay').hidden=false; $('signedInAs').textContent=''; $('syncStatus').textContent='Signed out'; return; }
  $('loginOverlay').hidden=true; const isDad=user.uid===DAD_UID; $('signedInAs').textContent=isDad?'Dad':'Microbia'; $('syncStatus').textContent='Synced ♡'; $('roleGreeting').innerHTML=isDad?'Hey,<em>Dad ♡</em>':'Good morning,<em>Microbia ♡</em>'; 
  document.querySelector('.dad-only').hidden=!isDad;
@@ -116,7 +165,7 @@ onAuthStateChanged(auth,user=>{
 
  const pregnancyRef=doc(db,'shared','pregnancy');
  unsubPregnancy=onSnapshot(pregnancyRef,snap=>{
-   const due=snap.exists()?snap.data().dueDate:null; renderPregnancy(due);
+   const due=snap.exists()?snap.data().dueDate:null; $('dueDateInput').dataset.saved=due||''; renderPregnancy(due);
  });
  const preRef=doc(db,'prenatals',todayKey());
  unsubPrenatal=onSnapshot(preRef,snap=>{
@@ -124,6 +173,8 @@ onAuthStateChanged(auth,user=>{
    $('takenBtn').disabled=taken; $('takenBtn').textContent=taken?'✓ Prenatal taken today':'♡ I took my prenatal';
    $('takenStatus').textContent=taken?'You did it, Mama! ♡':'Not marked yet';
  });
+ unsubMilestones=onSnapshot(query(collection(db,'milestones'),orderBy('date','desc')),snap=>renderTimeline('milestoneList',snap,'milestone'));
+ unsubAppointments=onSnapshot(query(collection(db,'appointments'),orderBy('date','asc')),snap=>renderTimeline('appointmentList',snap,'appointment'));
 });
 
 $('takenBtn').addEventListener('click',async()=>{
@@ -140,6 +191,23 @@ $('messageForm').addEventListener('submit',async e=>{
  try { await setDoc(doc(db,'shared','dadMessage'),{text:v,updatedBy:auth.currentUser.uid,updatedAt:serverTimestamp()},{merge:true}); $('messageInput').value=''; $('messageStatus').textContent='Message sent to Microbia ♡'; }
  catch(e){ $('messageStatus').textContent='Could not send. Try again ♡'; }
 });
+
+function escapeHTML(v=''){return v.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));}
+function prettyStoredDate(v){if(!v)return '';const [y,m,d]=v.split('-').map(Number);return new Date(y,m-1,d).toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'});}
+function renderTimeline(targetId,snap,type){
+ const target=$(targetId);
+ if(snap.empty){target.innerHTML=`<p class="empty-state">${type==='milestone'?'No milestones yet. Our story is just beginning ♡':'No appointments added yet ♡'}</p>`;return;}
+ target.innerHTML=snap.docs.map(d=>{const x=d.data(),when=prettyStoredDate(x.date)+(x.time?` · ${escapeHTML(x.time)}`:'');
+ const location=x.location?`<p class="timeline-meta">📍 ${escapeHTML(x.location)}</p>`:'',note=x.note?`<p>${escapeHTML(x.note)}</p>`:'';
+ return `<article class="timeline-item"><div class="timeline-dot">${type==='milestone'?'♡':'🩺'}</div><div class="timeline-copy"><h3>${escapeHTML(x.title||'Untitled')}</h3><p class="timeline-date">${when}</p>${location}${note}</div><button class="delete-entry" type="button" data-kind="${type}" data-id="${d.id}" aria-label="Delete ${type}">×</button></article>`;}).join('');
+}
+$('milestoneForm').addEventListener('submit',async e=>{e.preventDefault();if(!auth.currentUser)return;$('milestoneStatus').textContent='Saving memory…';
+ try{await addDoc(collection(db,'milestones'),{title:$('milestoneTitle').value.trim(),date:$('milestoneDate').value,note:$('milestoneNote').value.trim(),createdBy:auth.currentUser.uid,createdAt:serverTimestamp()});e.target.reset();$('milestoneStatus').textContent='Milestone saved ♡';}catch(err){$('milestoneStatus').textContent='Could not save. Try again ♡';}});
+$('appointmentForm').addEventListener('submit',async e=>{e.preventDefault();if(!auth.currentUser)return;$('appointmentStatus').textContent='Saving appointment…';
+ try{await addDoc(collection(db,'appointments'),{title:$('appointmentTitle').value.trim(),date:$('appointmentDate').value,time:$('appointmentTime').value,location:$('appointmentLocation').value.trim(),note:$('appointmentNote').value.trim(),createdBy:auth.currentUser.uid,createdAt:serverTimestamp()});e.target.reset();$('appointmentStatus').textContent='Appointment saved ♡';}catch(err){$('appointmentStatus').textContent='Could not save. Try again ♡';}});
+document.addEventListener('click',async e=>{const btn=e.target.closest('.delete-entry');if(!btn||!auth.currentUser)return;if(!confirm(`Delete this ${btn.dataset.kind}?`))return;
+ try{await deleteDoc(doc(db,btn.dataset.kind==='milestone'?'milestones':'appointments',btn.dataset.id));}catch(err){alert('Could not delete it. Please try again.');}});
+
 const babySizes=['poppy seed','sesame seed','lentil','blueberry','raspberry','cherry','strawberry','lime','plum','lemon','peach','apple','avocado','pear','sweet potato','mango','banana','carrot','papaya','grapefruit','ear of corn','rutabaga','scallion','cauliflower','eggplant','acorn squash','cabbage','coconut','pineapple','butternut squash','cantaloupe','honeydew melon','romaine lettuce','Swiss chard','mini watermelon','pumpkin','watermelon'];
 function parseLocalDate(v){const [y,m,d]=v.split('-').map(Number);return new Date(y,m-1,d);}
 function fmtDate(d){return d.toLocaleDateString(undefined,{month:'long',day:'numeric',year:'numeric'});}
