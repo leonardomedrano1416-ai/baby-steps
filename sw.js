@@ -14,23 +14,7 @@ firebase.initializeApp({
 
 const messaging = firebase.messaging();
 
-messaging.onBackgroundMessage((payload) => {
-  const title =
-    payload.notification?.title ||
-    payload.data?.title ||
-    "Baby Steps ♡";
 
-  const options = {
-    body:
-      payload.notification?.body ||
-      payload.data?.body ||
-      "You have a new Baby Steps reminder.",
-    icon: "./sonogram-bg.jpg",
-    data: { url: "./" }
-  };
-
-  self.registration.showNotification(title, options);
-});
 
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
