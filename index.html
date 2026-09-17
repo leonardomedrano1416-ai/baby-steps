@@ -8,11 +8,22 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Baby Steps">
 <link rel="manifest" href="manifest.webmanifest">
-<link rel="stylesheet" href="styles.css?v=4">
+<link rel="stylesheet" href="styles.css?v=5">
 <title>Baby Steps</title>
 </head>
 <body>
+<div id="loginOverlay" class="login-overlay">
+  <form id="loginForm" class="login-card">
+    <h2>Welcome to Baby Steps ♡</h2>
+    <p>Sign in to your private Baby Steps account.</p>
+    <input id="emailInput" type="email" autocomplete="username" placeholder="Email" required>
+    <input id="passwordInput" type="password" autocomplete="current-password" placeholder="Password" required>
+    <button type="submit">Sign in ♡</button>
+    <p id="loginError" class="login-error" aria-live="polite"></p>
+  </form>
+</div>
 <main class="shell">
+<div class="authbar"><span id="syncStatus" class="sync-pill">Connecting…</span><span id="signedInAs" class="authnote"></span><button id="signOutBtn" type="button">Sign out</button></div>
 <header class="brand">
   <div><h1>Baby Steps ♡</h1><p>for you, for our little one ♡</p></div>
   <nav aria-label="Baby Steps">
@@ -50,7 +61,7 @@
   </div>
 </div>
 
-<section id="messages" class="card dad">
+<section id="messages" class="card dad dad-only" hidden>
   <h2>Dad's Corner ✍️</h2>
   <p>Leave Microbia a little note.</p>
   <form id="messageForm">
@@ -67,18 +78,62 @@
 </div>
 <footer>— &nbsp; You’re doing amazing ♡ &nbsp; —</footer>
 </main>
-<script>
-const d=new Date();
-document.getElementById('today').textContent=d.toLocaleDateString(undefined,{weekday:'long',month:'long',day:'numeric'});
-document.getElementById('takenBtn').addEventListener('click',function(){
- this.textContent='✓ Prenatal taken today'; this.disabled=true;
- document.getElementById('takenStatus').textContent='You did it, Mama! ♡';
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-app.js";
+import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-auth.js";
+import { getFirestore, doc, getDoc, setDoc, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBXqip02zAtPi5eQB282HwbhbmTHmo4b04",
+  authDomain: "baby-steps-2c470.firebaseapp.com",
+  projectId: "baby-steps-2c470",
+  storageBucket: "baby-steps-2c470.firebasestorage.app",
+  messagingSenderId: "737826285998",
+  appId: "1:737826285998:web:1f743af1106ec802f2c03f"
+};
+const DAD_UID = "quwZWCn1IoUGT5NwEygn6eKCxTE3";
+const app=initializeApp(firebaseConfig), auth=getAuth(app), db=getFirestore(app);
+const $=id=>document.getElementById(id);
+const todayKey=()=>new Date().toLocaleDateString('en-CA');
+let unsubMessage=null, unsubPrenatal=null;
+
+$('today').textContent=new Date().toLocaleDateString(undefined,{weekday:'long',month:'long',day:'numeric'});
+
+$('loginForm').addEventListener('submit', async e=>{
+ e.preventDefault(); $('loginError').textContent='Signing in…';
+ try { await signInWithEmailAndPassword(auth,$('emailInput').value.trim(),$('passwordInput').value); $('passwordInput').value=''; $('loginError').textContent=''; }
+ catch(err){ $('loginError').textContent='Could not sign in. Check the email and password.'; }
 });
-document.getElementById('messageForm').addEventListener('submit',function(e){
- e.preventDefault(); const i=document.getElementById('messageInput'), v=i.value.trim();
- if(!v){document.getElementById('messageStatus').textContent='Write a message first ♡';return;}
- document.getElementById('dadMessage').textContent='“'+v+'”'; i.value='';
- document.getElementById('messageStatus').textContent='Message updated ♡';
+$('signOutBtn').addEventListener('click',()=>signOut(auth));
+
+onAuthStateChanged(auth,user=>{
+ if(unsubMessage) unsubMessage(); if(unsubPrenatal) unsubPrenatal();
+ if(!user){ $('loginOverlay').hidden=false; $('signedInAs').textContent=''; $('syncStatus').textContent='Signed out'; return; }
+ $('loginOverlay').hidden=true; $('signedInAs').textContent=user.uid===DAD_UID?'Dad':'Microbia'; $('syncStatus').textContent='Synced ♡';
+ document.querySelector('.dad-only').hidden=user.uid!==DAD_UID;
+ const msgRef=doc(db,'shared','dadMessage');
+ unsubMessage=onSnapshot(msgRef,snap=>{ if(snap.exists()&&snap.data().text) $('dadMessage').textContent='“'+snap.data().text+'”'; });
+ const preRef=doc(db,'prenatals',todayKey());
+ unsubPrenatal=onSnapshot(preRef,snap=>{
+   const taken=snap.exists()&&snap.data().taken===true;
+   $('takenBtn').disabled=taken; $('takenBtn').textContent=taken?'✓ Prenatal taken today':'♡ I took my prenatal';
+   $('takenStatus').textContent=taken?'You did it, Mama! ♡':'Not marked yet';
+ });
+});
+
+$('takenBtn').addEventListener('click',async()=>{
+ if(!auth.currentUser)return;
+ $('takenStatus').textContent='Saving…';
+ try { await setDoc(doc(db,'prenatals',todayKey()),{taken:true,takenBy:auth.currentUser.uid,updatedAt:serverTimestamp()},{merge:true}); }
+ catch(e){ $('takenStatus').textContent='Could not save. Try again ♡'; }
+});
+
+$('messageForm').addEventListener('submit',async e=>{
+ e.preventDefault(); if(!auth.currentUser||auth.currentUser.uid!==DAD_UID)return;
+ const v=$('messageInput').value.trim(); if(!v){$('messageStatus').textContent='Write a message first ♡';return;}
+ $('messageStatus').textContent='Sending…';
+ try { await setDoc(doc(db,'shared','dadMessage'),{text:v,updatedBy:auth.currentUser.uid,updatedAt:serverTimestamp()},{merge:true}); $('messageInput').value=''; $('messageStatus').textContent='Message sent to Microbia ♡'; }
+ catch(e){ $('messageStatus').textContent='Could not send. Try again ♡'; }
 });
 </script>
 </body></html>
