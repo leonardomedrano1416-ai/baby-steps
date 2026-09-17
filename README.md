@@ -1,2 +1,2 @@
-# Baby Steps v3
-Clean functional redesign with a sonogram-only background. Service-worker caching is intentionally disabled during development.
+# Baby Steps v4
+Same functional v3 interface with a clearer ultrasound background. Development caching remains disabled.
