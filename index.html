@@ -8,7 +8,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Baby Steps">
 <link rel="manifest" href="manifest.webmanifest">
-<link rel="stylesheet" href="styles.css?v=5">
+<link rel="stylesheet" href="styles.css?v=6">
 <title>Baby Steps</title>
 </head>
 <body>
@@ -42,7 +42,7 @@
   <section class="card greeting">
     <div class="heart">♥</div>
     <b>BABY STEPS</b>
-    <h2>Good morning,<em>Microbia ♡</em></h2>
+    <h2 id="roleGreeting">Good morning,<em>Microbia ♡</em></h2>
     <hr>
     <div class="message-title"><span class="badge">💌</span><b>A MESSAGE FROM DAD</b></div>
     <p id="dadMessage" class="quote">“I know some days are harder than others, but I want you to know I’m right here with you. You’re going to be an amazing mama. ♡”</p>
@@ -95,7 +95,7 @@ const DAD_UID = "quwZWCn1IoUGT5NwEygn6eKCxTE3";
 const app=initializeApp(firebaseConfig), auth=getAuth(app), db=getFirestore(app);
 const $=id=>document.getElementById(id);
 const todayKey=()=>new Date().toLocaleDateString('en-CA');
-let unsubMessage=null, unsubPrenatal=null;
+let unsubMessage=null, unsubPrenatal=null, unsubPregnancy=null;
 
 $('today').textContent=new Date().toLocaleDateString(undefined,{weekday:'long',month:'long',day:'numeric'});
 
@@ -107,12 +107,17 @@ $('loginForm').addEventListener('submit', async e=>{
 $('signOutBtn').addEventListener('click',()=>signOut(auth));
 
 onAuthStateChanged(auth,user=>{
- if(unsubMessage) unsubMessage(); if(unsubPrenatal) unsubPrenatal();
+ if(unsubMessage) unsubMessage(); if(unsubPrenatal) unsubPrenatal(); if(unsubPregnancy) unsubPregnancy();
  if(!user){ $('loginOverlay').hidden=false; $('signedInAs').textContent=''; $('syncStatus').textContent='Signed out'; return; }
- $('loginOverlay').hidden=true; $('signedInAs').textContent=user.uid===DAD_UID?'Dad':'Microbia'; $('syncStatus').textContent='Synced ♡';
- document.querySelector('.dad-only').hidden=user.uid!==DAD_UID;
+ $('loginOverlay').hidden=true; const isDad=user.uid===DAD_UID; $('signedInAs').textContent=isDad?'Dad':'Microbia'; $('syncStatus').textContent='Synced ♡'; $('roleGreeting').innerHTML=isDad?'Hey,<em>Dad ♡</em>':'Good morning,<em>Microbia ♡</em>'; 
+ document.querySelector('.dad-only').hidden=!isDad;
  const msgRef=doc(db,'shared','dadMessage');
  unsubMessage=onSnapshot(msgRef,snap=>{ if(snap.exists()&&snap.data().text) $('dadMessage').textContent='“'+snap.data().text+'”'; });
+
+ const pregnancyRef=doc(db,'shared','pregnancy');
+ unsubPregnancy=onSnapshot(pregnancyRef,snap=>{
+   const due=snap.exists()?snap.data().dueDate:null; renderPregnancy(due);
+ });
  const preRef=doc(db,'prenatals',todayKey());
  unsubPrenatal=onSnapshot(preRef,snap=>{
    const taken=snap.exists()&&snap.data().taken===true;
@@ -135,5 +140,31 @@ $('messageForm').addEventListener('submit',async e=>{
  try { await setDoc(doc(db,'shared','dadMessage'),{text:v,updatedBy:auth.currentUser.uid,updatedAt:serverTimestamp()},{merge:true}); $('messageInput').value=''; $('messageStatus').textContent='Message sent to Microbia ♡'; }
  catch(e){ $('messageStatus').textContent='Could not send. Try again ♡'; }
 });
+const babySizes=['poppy seed','sesame seed','lentil','blueberry','raspberry','cherry','strawberry','lime','plum','lemon','peach','apple','avocado','pear','sweet potato','mango','banana','carrot','papaya','grapefruit','ear of corn','rutabaga','scallion','cauliflower','eggplant','acorn squash','cabbage','coconut','pineapple','butternut squash','cantaloupe','honeydew melon','romaine lettuce','Swiss chard','mini watermelon','pumpkin','watermelon'];
+function parseLocalDate(v){const [y,m,d]=v.split('-').map(Number);return new Date(y,m-1,d);}
+function fmtDate(d){return d.toLocaleDateString(undefined,{month:'long',day:'numeric',year:'numeric'});}
+function renderPregnancy(dueDate){
+ const has=!!dueDate; $('dueUnknown').hidden=has; $('pregnancyStats').hidden=!has; $('dueDateForm').hidden=true;
+ if(!has)return;
+ const due=parseLocalDate(dueDate), today=new Date(); today.setHours(0,0,0,0); due.setHours(0,0,0,0);
+ const daysTo=Math.round((due-today)/86400000); const gestDays=280-daysTo; const weeks=Math.floor(gestDays/7), days=((gestDays%7)+7)%7;
+ $('pregnancyWeek').textContent=gestDays>=0?`${weeks} weeks, ${days} days`:'Due date is in the future';
+ $('dueDateText').textContent=`Estimated due date: ${fmtDate(due)}`;
+ const tri=weeks<14?'First':weeks<28?'Second':'Third'; $('trimesterText').textContent=tri;
+ $('countdownText').textContent=daysTo>=0?daysTo:'♡';
+ const size=weeks>=4&&weeks<=40?babySizes[Math.min(weeks-4,babySizes.length-1)]:'growing'; $('babySizeText').textContent=size;
+ $('babyWeekText').textContent=weeks>=4&&weeks<=40?`Baby is about the size of a ${size} this week. Every pregnancy develops at its own pace. ♡`:'';
+ $('dueDateInput').value=dueDate;
+}
+$('showDueDateBtn').addEventListener('click',()=>{$('dueUnknown').hidden=true;$('dueDateForm').hidden=false;});
+$('cancelDueDateBtn').addEventListener('click',()=>{renderPregnancy($('dueDateInput').dataset.saved||'');});
+$('editDueDateBtn').addEventListener('click',()=>{$('pregnancyStats').hidden=true;$('dueDateForm').hidden=false;});
+$('dueDateForm').addEventListener('submit',async e=>{
+ e.preventDefault(); if(!auth.currentUser)return; const v=$('dueDateInput').value; if(!v)return;
+ $('dueDateStatus').textContent='Saving…';
+ try{await setDoc(doc(db,'shared','pregnancy'),{dueDate:v,updatedBy:auth.currentUser.uid,updatedAt:serverTimestamp()},{merge:true}); $('dueDateInput').dataset.saved=v; $('dueDateStatus').textContent='Due date saved ♡';}
+ catch(err){$('dueDateStatus').textContent='Could not save. Try again ♡';}
+});
+
 </script>
 </body></html>
