@@ -11,7 +11,7 @@ permissions:
   id-token: write
 
 jobs:
-  send-dad-reminder:
+  send-daily-reminders:
     runs-on: ubuntu-latest
 
     steps:
@@ -44,6 +44,33 @@ jobs:
                   notification: {
                     title: "Dad'\''s Corner ♡",
                     body: "Don'\''t forget to write Microbia a little message today ♡"
+                  },
+                  webpush: {
+                    fcm_options: {
+                      link: "https://leonardomedrano1416-ai.github.io/baby-steps/"
+                    }
+                  }
+                }
+              }')"
+
+      - name: Send Microbia's prenatal reminder
+        env:
+          MICROBIA_FCM_TOKEN: ${{ secrets.MICROBIA_FCM_TOKEN }}
+          ACCESS_TOKEN: ${{ steps.google-auth.outputs.ACCESS_TOKEN }}
+        run: |
+          curl --fail-with-body \
+            -X POST \
+            -H "Authorization: Bearer $ACCESS_TOKEN" \
+            -H "Content-Type: application/json" \
+            "https://fcm.googleapis.com/v1/projects/baby-steps-2c470/messages:send" \
+            -d "$(jq -n \
+              --arg token "$MICROBIA_FCM_TOKEN" \
+              '{
+                message: {
+                  token: $token,
+                  notification: {
+                    title: "Baby Steps ♡",
+                    body: "Good morning, Microbia ♡ Time to take your prenatal."
                   },
                   webpush: {
                     fcm_options: {
