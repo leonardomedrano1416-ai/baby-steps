@@ -11,7 +11,9 @@
 <link rel="stylesheet" href="styles.css?v=6.1">
 <title>Baby Steps</title>
 </head>
+
 <body>
+
 <div id="loginOverlay" class="login-overlay">
   <form id="loginForm" class="login-card">
     <h2>Welcome to Baby Steps ♡</h2>
@@ -22,22 +24,49 @@
     <p id="loginError" class="login-error" aria-live="polite"></p>
   </form>
 </div>
+
 <main class="shell">
-<div class="authbar"><span id="syncStatus" class="sync-pill">Connecting…</span><span id="signedInAs" class="authnote"></span><button id="signOutBtn" type="button">Sign out</button></div>
+
+<div class="authbar">
+  <span id="syncStatus" class="sync-pill">Connecting…</span>
+  <span id="signedInAs" class="authnote"></span>
+  <button id="signOutBtn" type="button">Sign out</button>
+</div>
+
 <header class="brand">
-  <div><h1>Baby Steps ♡</h1><p>for you, for our little one ♡</p></div>
+  <div>
+    <h1>Baby Steps ♡</h1>
+    <p>for you, for our little one ♡</p>
+  </div>
+
   <nav aria-label="Baby Steps">
-    <a class="active" href="#home">⌂ Home</a><a href="#journey">▣ Journey</a><a href="#messages">♡ Messages</a>
+    <a class="active" href="#home">⌂ Home</a>
+    <a href="#journey">▣ Journey</a>
+    <a href="#messages">♡ Messages</a>
   </nav>
 </header>
 
 <section id="home" class="card prenatal">
-  <div class="sectionline"><span>♡</span><b>TODAY'S PRENATAL</b><span class="badge">💊</span></div>
+  <div class="sectionline">
+    <span>♡</span>
+    <b>TODAY'S PRENATAL</b>
+    <span class="badge">💊</span>
+  </div>
+
   <h2>Have you taken it?</h2>
+
   <button id="takenBtn">♡ I took my prenatal</button>
-  <p id="takenStatus" class="center" aria-live="polite">Not marked yet</p>
+
+  <p id="takenStatus" class="center" aria-live="polite">
+    Not marked yet
+  </p>
 </section>
+
+
+<!-- DAILY CHECK-IN -->
+
 <section id="dailyCheckin" class="card daily-checkin">
+
   <div class="sectionline">
     <span>♡</span>
     <b>DAILY CHECK-IN</b>
@@ -45,9 +74,13 @@
   </div>
 
   <h2>How are you feeling today?</h2>
-  <p class="center checkin-subtitle">Pick the mood that feels closest ♡</p>
+
+  <p class="center checkin-subtitle">
+    Pick the mood that feels closest ♡
+  </p>
 
   <div class="mood-options" id="moodOptions">
+
     <button type="button" class="mood-btn" data-mood="Great">
       <span>😊</span>
       <small>Great</small>
@@ -72,11 +105,13 @@
       <span>😭</span>
       <small>Awful</small>
     </button>
+
   </div>
 
   <h3 class="checkin-heading">Symptoms today</h3>
 
   <div class="symptom-options" id="symptomOptions">
+
     <button type="button" class="symptom-btn">Nausea</button>
     <button type="button" class="symptom-btn">Vomiting</button>
     <button type="button" class="symptom-btn">Fatigue</button>
@@ -93,6 +128,7 @@
     <button type="button" class="symptom-btn">Frequent urination</button>
     <button type="button" class="symptom-btn">Mood changes</button>
     <button type="button" class="symptom-btn">Trouble sleeping</button>
+
   </div>
 
   <label class="checkin-heading" for="checkinNote">
@@ -105,116 +141,448 @@
     placeholder="Tell Dad a little about your day ♡"
   ></textarea>
 
-  <button type="button" id="saveCFheckinBtn">
+  <button type="button" id="saveCheckinBtn">
     ♡ Save today's check-in
   </button>
 
   <p id="checkinStatus" class="center" aria-live="polite">
     Nothing saved yet ♡
   </p>
+
 </section>
+
+
 <div class="dashboard">
+
   <section class="card greeting">
+
     <div class="heart">♥</div>
+
     <b>BABY STEPS</b>
-    <h2 id="roleGreeting">Good morning,<em>Microbia ♡</em></h2>
+
+    <h2 id="roleGreeting">
+      Good morning,<em>Microbia ♡</em>
+    </h2>
+
     <hr>
-    <div class="message-title"><span class="badge">💌</span><b>A MESSAGE FROM DAD</b></div>
-    <p id="dadMessage" class="quote">“I know some days are harder than others, but I want you to know I’m right here with you. You’re going to be an amazing mama. ♡”</p>
+
+    <div class="message-title">
+      <span class="badge">💌</span>
+      <b>A MESSAGE FROM DAD</b>
+    </div>
+
+    <p id="dadMessage" class="quote">
+      “I know some days are harder than others, but I want you to know I’m right here with you. You’re going to be an amazing mama. ♡”
+    </p>
+
   </section>
+
+
   <div>
+
     <section id="pregnancy" class="card info">
-      <div class="message-title"><span class="badge">📅</span><b>PREGNANCY</b></div>
+
+      <div class="message-title">
+        <span class="badge">📅</span>
+        <b>PREGNANCY</b>
+      </div>
+
       <div id="dueUnknown">
+
         <h3>Waiting for our first appointment ♡</h3>
-        <p>Once the doctor gives us an estimated due date, we can add it here.</p>
-        <button id="showDueDateBtn" class="secondary-btn" type="button">Add due date ♡</button>
+
+        <p>
+          Once the doctor gives us an estimated due date, we can add it here.
+        </p>
+
+        <button
+          id="showDueDateBtn"
+          class="secondary-btn"
+          type="button"
+        >
+          Add due date ♡
+        </button>
+
       </div>
+
+
       <div id="pregnancyStats" hidden>
-        <h3 id="pregnancyWeek">—</h3><p id="dueDateText"></p>
+
+        <h3 id="pregnancyWeek">—</h3>
+
+        <p id="dueDateText"></p>
+
         <div class="stat-grid">
-          <div><strong id="trimesterText">—</strong><span>Trimester</span></div>
-          <div><strong id="countdownText">—</strong><span>Days to go</span></div>
-          <div><strong id="babySizeText">—</strong><span>Baby size</span></div>
+
+          <div>
+            <strong id="trimesterText">—</strong>
+            <span>Trimester</span>
+          </div>
+
+          <div>
+            <strong id="countdownText">—</strong>
+            <span>Days to go</span>
+          </div>
+
+          <div>
+            <strong id="babySizeText">—</strong>
+            <span>Baby size</span>
+          </div>
+
         </div>
+
         <p id="babyWeekText" class="baby-week-copy"></p>
-        <button id="editDueDateBtn" class="secondary-btn" type="button">Edit due date</button>
+
+        <button
+          id="editDueDateBtn"
+          class="secondary-btn"
+          type="button"
+        >
+          Edit due date
+        </button>
+
       </div>
-      <form id="dueDateForm" class="due-date-form" hidden>
-        <label for="dueDateInput"><b>ESTIMATED DUE DATE</b></label>
-        <input id="dueDateInput" type="date" required>
-        <div class="form-actions"><button type="submit">Save due date ♡</button><button id="cancelDueDateBtn" class="secondary-btn" type="button">Cancel</button></div>
-        <p id="dueDateStatus" class="center" aria-live="polite"></p>
+
+
+      <form
+        id="dueDateForm"
+        class="due-date-form"
+        hidden
+      >
+
+        <label for="dueDateInput">
+          <b>ESTIMATED DUE DATE</b>
+        </label>
+
+        <input
+          id="dueDateInput"
+          type="date"
+          required
+        >
+
+        <div class="form-actions">
+
+          <button type="submit">
+            Save due date ♡
+          </button>
+
+          <button
+            id="cancelDueDateBtn"
+            class="secondary-btn"
+            type="button"
+          >
+            Cancel
+          </button>
+
+        </div>
+
+        <p
+          id="dueDateStatus"
+          class="center"
+          aria-live="polite"
+        ></p>
+
       </form>
+
     </section>
+
+
     <section class="card info">
-      <div class="message-title"><span class="badge">♥</span><b>TODAY</b></div>
+
+      <div class="message-title">
+        <span class="badge">♥</span>
+        <b>TODAY</b>
+      </div>
+
       <h3 id="today">—</h3>
+
       <p>One day at a time, Mama. ♡</p>
+
     </section>
+
   </div>
+
 </div>
+
+
+<!-- JOURNEY -->
 
 <section id="journey" class="journey-wrap">
-  <div class="journey-heading"><span class="badge">🧸</span><div><b>OUR JOURNEY</b><h2>Little moments, big memories ♡</h2><p>Keep the milestones and appointments that make this journey ours.</p></div></div>
-  <div class="journey-grid">
-    <section class="card journey-card">
-      <div class="message-title"><span class="badge">♡</span><b>MILESTONES</b></div>
-      <form id="milestoneForm" class="stack-form">
-        <input id="milestoneTitle" maxlength="80" placeholder="First ultrasound, told our family..." required>
-        <input id="milestoneDate" type="date" required>
-        <textarea id="milestoneNote" maxlength="300" rows="3" placeholder="A little note about this memory ♡"></textarea>
-        <button type="submit">Add milestone ♡</button>
-      </form>
-      <p id="milestoneStatus" class="center" aria-live="polite"></p>
-      <div id="milestoneList" class="timeline-list"><p class="empty-state">No milestones yet. Our story is just beginning ♡</p></div>
-    </section>
-    <section class="card journey-card">
-      <div class="message-title"><span class="badge">🩺</span><b>APPOINTMENTS</b></div>
-      <form id="appointmentForm" class="stack-form">
-        <input id="appointmentTitle" maxlength="80" placeholder="First prenatal appointment" required>
-        <input id="appointmentDate" type="date" required>
-        <input id="appointmentTime" type="time">
-        <input id="appointmentLocation" maxlength="100" placeholder="Doctor / clinic (optional)">
-        <textarea id="appointmentNote" maxlength="300" rows="3" placeholder="Questions or things we want to remember ♡"></textarea>
-        <button type="submit">Add appointment ♡</button>
-      </form>
-      <p id="appointmentStatus" class="center" aria-live="polite"></p>
-      <div id="appointmentList" class="timeline-list"><p class="empty-state">No appointments added yet ♡</p></div>
-    </section>
+
+  <div class="journey-heading">
+
+    <span class="badge">🧸</span>
+
+    <div>
+      <b>OUR JOURNEY</b>
+      <h2>Little moments, big memories ♡</h2>
+      <p>
+        Keep the milestones and appointments that make this journey ours.
+      </p>
+    </div>
+
   </div>
+
+
+  <div class="journey-grid">
+
+    <section class="card journey-card">
+
+      <div class="message-title">
+        <span class="badge">♡</span>
+        <b>MILESTONES</b>
+      </div>
+
+      <form id="milestoneForm" class="stack-form">
+
+        <input
+          id="milestoneTitle"
+          maxlength="80"
+          placeholder="First ultrasound, told our family..."
+          required
+        >
+
+        <input
+          id="milestoneDate"
+          type="date"
+          required
+        >
+
+        <textarea
+          id="milestoneNote"
+          maxlength="300"
+          rows="3"
+          placeholder="A little note about this memory ♡"
+        ></textarea>
+
+        <button type="submit">
+          Add milestone ♡
+        </button>
+
+      </form>
+
+      <p
+        id="milestoneStatus"
+        class="center"
+        aria-live="polite"
+      ></p>
+
+      <div id="milestoneList" class="timeline-list">
+
+        <p class="empty-state">
+          No milestones yet. Our story is just beginning ♡
+        </p>
+
+      </div>
+
+    </section>
+
+
+    <section class="card journey-card">
+
+      <div class="message-title">
+        <span class="badge">🩺</span>
+        <b>APPOINTMENTS</b>
+      </div>
+
+      <form id="appointmentForm" class="stack-form">
+
+        <input
+          id="appointmentTitle"
+          maxlength="80"
+          placeholder="First prenatal appointment"
+          required
+        >
+
+        <input
+          id="appointmentDate"
+          type="date"
+          required
+        >
+
+        <input
+          id="appointmentTime"
+          type="time"
+        >
+
+        <input
+          id="appointmentLocation"
+          maxlength="100"
+          placeholder="Doctor / clinic (optional)"
+        >
+
+        <textarea
+          id="appointmentNote"
+          maxlength="300"
+          rows="3"
+          placeholder="Questions or things we want to remember ♡"
+        ></textarea>
+
+        <button type="submit">
+          Add appointment ♡
+        </button>
+
+      </form>
+
+      <p
+        id="appointmentStatus"
+        class="center"
+        aria-live="polite"
+      ></p>
+
+      <div id="appointmentList" class="timeline-list">
+
+        <p class="empty-state">
+          No appointments added yet ♡
+        </p>
+
+      </div>
+
+    </section>
+
+  </div>
+
 </section>
 
-<section id="messages" class="card dad dad-only" hidden>
+
+<!-- DAD'S CORNER -->
+
+<section
+  id="messages"
+  class="card dad dad-only"
+  hidden
+>
+
   <h2>Dad's Corner ✍️</h2>
+
   <p>Leave Microbia a little note.</p>
+
   <form id="messageForm">
-    <textarea id="messageInput" maxlength="300" rows="4" placeholder="Write something sweet for Mama..." aria-label="Message for Microbia"></textarea>
-    <button type="submit">Save Dad's message ♡</button>
+
+    <textarea
+      id="messageInput"
+      maxlength="300"
+      rows="4"
+      placeholder="Write something sweet for Mama..."
+      aria-label="Message for Microbia"
+    ></textarea>
+
+    <button type="submit">
+      Save Dad's message ♡
+    </button>
+
   </form>
-  <p id="messageStatus" class="center" aria-live="polite"></p>
+
+  <p
+    id="messageStatus"
+    class="center"
+    aria-live="polite"
+  ></p>
+
 </section>
+
+
+<!-- NOTIFICATIONS -->
 
 <section id="notifications" class="card info">
-  <div class="message-title"><span class="badge">🔔</span><b>NOTIFICATIONS</b></div>
+
+  <div class="message-title">
+    <span class="badge">🔔</span>
+    <b>NOTIFICATIONS</b>
+  </div>
+
   <h3>Baby Steps reminders ♡</h3>
-  <p>Turn on notifications on this device for prenatal, appointment, and message reminders.</p>
-  <button id="enableNotificationsBtn" type="button">Enable Notifications ♡</button>
-  <p id="notificationStatus" class="center" aria-live="polite">Notifications are off on this device.</p>
+
+  <p>
+    Turn on notifications on this device for prenatal, appointment, and message reminders.
+  </p>
+
+  <button
+    id="enableNotificationsBtn"
+    type="button"
+  >
+    Enable Notifications ♡
+  </button>
+
+  <p
+    id="notificationStatus"
+    class="center"
+    aria-live="polite"
+  >
+    Notifications are off on this device.
+  </p>
+
 </section>
 
+
 <div class="quick">
-  <div class="card mini"><span class="badge">📖</span><div><b>LEARN</b><p>Articles, tips, and resources</p></div></div>
-  <div class="card mini"><span class="badge">📅</span><div><b>JOURNEY</b><p>Track milestones</p></div></div>
-  <div class="card mini"><span class="badge">♡</span><div><b>MESSAGES</b><p>Notes from Dad</p></div></div>
+
+  <div class="card mini">
+    <span class="badge">📖</span>
+    <div>
+      <b>LEARN</b>
+      <p>Articles, tips, and resources</p>
+    </div>
+  </div>
+
+  <div class="card mini">
+    <span class="badge">📅</span>
+    <div>
+      <b>JOURNEY</b>
+      <p>Track milestones</p>
+    </div>
+  </div>
+
+  <div class="card mini">
+    <span class="badge">♡</span>
+    <div>
+      <b>MESSAGES</b>
+      <p>Notes from Dad</p>
+    </div>
+  </div>
+
 </div>
-<footer>— &nbsp; You’re doing amazing ♡ &nbsp; —</footer>
+
+<footer>
+  — &nbsp; You’re doing amazing ♡ &nbsp; —
+</footer>
+
 </main>
+
+
 <script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-app.js";
-import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-auth.js";
-import { getFirestore, doc, setDoc, onSnapshot, serverTimestamp, collection, addDoc, query, orderBy, deleteDoc } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-firestore.js";
-import { getMessaging, getToken, onMessage, isSupported } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-messaging.js";
+
+import {
+  initializeApp
+} from "https://www.gstatic.com/firebasejs/12.3.0/firebase-app.js";
+
+import {
+  getAuth,
+  onAuthStateChanged,
+  signInWithEmailAndPassword,
+  signOut
+} from "https://www.gstatic.com/firebasejs/12.3.0/firebase-auth.js";
+
+import {
+  getFirestore,
+  doc,
+  setDoc,
+  onSnapshot,
+  serverTimestamp,
+  collection,
+  addDoc,
+  query,
+  orderBy,
+  deleteDoc
+} from "https://www.gstatic.com/firebasejs/12.3.0/firebase-firestore.js";
+
+import {
+  getMessaging,
+  getToken,
+  onMessage,
+  isSupported
+} from "https://www.gstatic.com/firebasejs/12.3.0/firebase-messaging.js";
+
 
 const firebaseConfig = {
   apiKey: "AIzaSyCwfU01fplKAmMjF9AGrpfh3_dID11jpyQ",
@@ -224,227 +592,1536 @@ const firebaseConfig = {
   messagingSenderId: "737826285998",
   appId: "1:737826285998:web:1f743af1106ec802f2c03f"
 };
-const DAD_UID = "quwZWCn1IoUGT5NwEygn6eKCxTE3";
-const app=initializeApp(firebaseConfig), auth=getAuth(app), db=getFirestore(app);
-const VAPID_KEY="BORWgJuVa6KyOQYUV6SzOAUSStVhl3RZPqyR4eWLBezodpwfPKF8oWDEW9_FW4kxeVdjInmYOaPzxbbwUQWkCzk";
-let messaging=null, messagingSupported=false;
-const $=id=>document.getElementById(id);
-const todayKey=()=>new Date().toLocaleDateString('en-CA');
-let unsubMessage=null, unsubPrenatal=null, unsubPregnancy=null, unsubMilestones=null, unsubAppointments=null;
 
-$('today').textContent=new Date().toLocaleDateString(undefined,{weekday:'long',month:'long',day:'numeric'});
 
-$('loginForm').addEventListener('submit', async e=>{
- e.preventDefault(); $('loginError').textContent='Signing in…';
- try { await signInWithEmailAndPassword(auth,$('emailInput').value.trim(),$('passwordInput').value); $('passwordInput').value=''; $('loginError').textContent=''; }
- catch(err){ $('loginError').textContent='Could not sign in. Check the email and password.'; }
-});
-$('signOutBtn').addEventListener('click',()=>signOut(auth));
+const DAD_UID =
+  "quwZWCn1IoUGT5NwEygn6eKCxTE3";
 
-onAuthStateChanged(auth,user=>{
- if(unsubMessage) unsubMessage(); if(unsubPrenatal) unsubPrenatal(); if(unsubPregnancy) unsubPregnancy(); if(unsubMilestones) unsubMilestones(); if(unsubAppointments) unsubAppointments();
- if(!user){ $('loginOverlay').hidden=false; $('signedInAs').textContent=''; $('syncStatus').textContent='Signed out'; return; }
- $('loginOverlay').hidden=true; const isDad=user.uid===DAD_UID; $('signedInAs').textContent=isDad?'Dad':'Microbia'; $('syncStatus').textContent='Synced ♡'; $('roleGreeting').innerHTML=isDad?'Hey,<em>Dad ♡</em>':'Good morning,<em>Microbia ♡</em>'; 
- document.querySelector('.dad-only').hidden=!isDad;
- const msgRef=doc(db,'shared','dadMessage');
- unsubMessage=onSnapshot(msgRef,snap=>{ if(snap.exists()&&snap.data().text) $('dadMessage').textContent='“'+snap.data().text+'”'; });
 
- const pregnancyRef=doc(db,'shared','pregnancy');
- unsubPregnancy=onSnapshot(pregnancyRef,snap=>{
-   const due=snap.exists()?snap.data().dueDate:null; $('dueDateInput').dataset.saved=due||''; renderPregnancy(due);
- });
- const preRef=doc(db,'prenatals',todayKey());
- unsubPrenatal=onSnapshot(preRef,snap=>{
-   const taken=snap.exists()&&snap.data().taken===true;
-   $('takenBtn').disabled=taken; $('takenBtn').textContent=taken?'✓ Prenatal taken today':'♡ I took my prenatal';
-   $('takenStatus').textContent=taken?'You did it, Mama! ♡':'Not marked yet';
- });
- unsubMilestones=onSnapshot(query(collection(db,'milestones'),orderBy('date','desc')),snap=>renderTimeline('milestoneList',snap,'milestone'));
- unsubAppointments=onSnapshot(query(collection(db,'appointments'),orderBy('date','asc')),snap=>renderTimeline('appointmentList',snap,'appointment')) loadTodayCheckin();
-});
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
 
-async function prepareMessaging(){
- const btn=$('enableNotificationsBtn');
- if(!('Notification' in window)||!('serviceWorker' in navigator)||!(await isSupported())){btn.disabled=true;$('notificationStatus').textContent='Push notifications are not supported on this browser.';return;}
- messagingSupported=true; messaging=getMessaging(app);
- if(Notification.permission==='granted') $('notificationStatus').textContent='Notifications are allowed on this device ♡';
- else if(Notification.permission==='denied') $('notificationStatus').textContent='Notifications are blocked in your browser settings.';
-}
-async function registerPushToken(){
- if(!auth.currentUser||!messagingSupported||!messaging)return; const btn=$('enableNotificationsBtn'); btn.disabled=true; $('notificationStatus').textContent='Turning on notifications…';
- try{const permission=await Notification.requestPermission(); if(permission!=='granted'){ $('notificationStatus').textContent=permission==='denied'?'Notifications were blocked. You can change this in browser settings.':'Notifications were not enabled.'; return;}
- const registration=await navigator.serviceWorker.register('./sw.js'); await navigator.serviceWorker.ready; const token=await getToken(messaging,{vapidKey:VAPID_KEY,serviceWorkerRegistration:registration}); if(!token)throw new Error('No FCM token');
- const digest=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(token)); const tokenId=Array.from(new Uint8Array(digest)).map(b=>b.toString(16).padStart(2,'0')).join('').slice(0,40);
- await setDoc(doc(db,'pushTokens',tokenId),{token,uid:auth.currentUser.uid,role:auth.currentUser.uid===DAD_UID?'Dad':'Microbia',enabled:true,preferences:{prenatal:true,appointments:true,messages:true},updatedAt:serverTimestamp()},{merge:true}); $('notificationStatus').textContent='Notifications are on for this device ♡';
- }catch(err){console.error(err);$('notificationStatus').textContent='Could not enable notifications. Try again ♡';}finally{btn.disabled=false;}
-}
-$('enableNotificationsBtn').addEventListener('click',registerPushToken);
-prepareMessaging().then(()=>{if(messaging)onMessage(messaging,payload=>{const title=payload.notification?.title||payload.data?.title||'Baby Steps ♡';const body=payload.notification?.body||payload.data?.body||'You have a new Baby Steps reminder.';if(Notification.permission==='granted')new Notification(title,{body});});});
 
-$('takenBtn').addEventListener('click',async()=>{
- if(!auth.currentUser)return;
- $('takenStatus').textContent='Saving…';
- try { await setDoc(doc(db,'prenatals',todayKey()),{taken:true,takenBy:auth.currentUser.uid,updatedAt:serverTimestamp()},{merge:true}); }
- catch(e){ $('takenStatus').textContent='Could not save. Try again ♡'; }
-});
+const VAPID_KEY =
+  "BORWgJuVa6KyOQYUV6SzOAUSStVhl3RZPqyR4eWLBezodpwfPKF8oWDEW9_FW4kxeVdjInmYOaPzxbbwUQWkCzk";
 
-$('messageForm').addEventListener('submit',async e=>{
- e.preventDefault(); if(!auth.currentUser||auth.currentUser.uid!==DAD_UID)return;
- const v=$('messageInput').value.trim(); if(!v){$('messageStatus').textContent='Write a message first ♡';return;}
- $('messageStatus').textContent='Sending…';
- try { await setDoc(doc(db,'shared','dadMessage'),{text:v,updatedBy:auth.currentUser.uid,updatedAt:serverTimestamp()},{merge:true}); $('messageInput').value=''; $('messageStatus').textContent='Message sent to Microbia ♡'; }
- catch(e){ $('messageStatus').textContent='Could not send. Try again ♡'; }
-});
 
-function escapeHTML(v=''){return v.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));}
-function prettyStoredDate(v){if(!v)return '';const [y,m,d]=v.split('-').map(Number);return new Date(y,m-1,d).toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'});}
-function renderTimeline(targetId,snap,type){
- const target=$(targetId);
- if(snap.empty){target.innerHTML=`<p class="empty-state">${type==='milestone'?'No milestones yet. Our story is just beginning ♡':'No appointments added yet ♡'}</p>`;return;}
- target.innerHTML=snap.docs.map(d=>{const x=d.data(),when=prettyStoredDate(x.date)+(x.time?` · ${escapeHTML(x.time)}`:'');
- const location=x.location?`<p class="timeline-meta">📍 ${escapeHTML(x.location)}</p>`:'',note=x.note?`<p>${escapeHTML(x.note)}</p>`:'';
- return `<article class="timeline-item"><div class="timeline-dot">${type==='milestone'?'♡':'🩺'}</div><div class="timeline-copy"><h3>${escapeHTML(x.title||'Untitled')}</h3><p class="timeline-date">${when}</p>${location}${note}</div><button class="delete-entry" type="button" data-kind="${type}" data-id="${d.id}" aria-label="Delete ${type}">×</button></article>`;}).join('');
-}
-$('milestoneForm').addEventListener('submit',async e=>{e.preventDefault();if(!auth.currentUser)return;$('milestoneStatus').textContent='Saving memory…';
- try{await addDoc(collection(db,'milestones'),{title:$('milestoneTitle').value.trim(),date:$('milestoneDate').value,note:$('milestoneNote').value.trim(),createdBy:auth.currentUser.uid,createdAt:serverTimestamp()});e.target.reset();$('milestoneStatus').textContent='Milestone saved ♡';}catch(err){$('milestoneStatus').textContent='Could not save. Try again ♡';}});
-$('appointmentForm').addEventListener('submit',async e=>{e.preventDefault();if(!auth.currentUser)return;$('appointmentStatus').textContent='Saving appointment…';
- try{await addDoc(collection(db,'appointments'),{title:$('appointmentTitle').value.trim(),date:$('appointmentDate').value,time:$('appointmentTime').value,location:$('appointmentLocation').value.trim(),note:$('appointmentNote').value.trim(),createdBy:auth.currentUser.uid,createdAt:serverTimestamp()});e.target.reset();$('appointmentStatus').textContent='Appointment saved ♡';}catch(err){$('appointmentStatus').textContent='Could not save. Try again ♡';}});
-document.addEventListener('click',async e=>{const btn=e.target.closest('.delete-entry');if(!btn||!auth.currentUser)return;if(!confirm(`Delete this ${btn.dataset.kind}?`))return;
- try{await deleteDoc(doc(db,btn.dataset.kind==='milestone'?'milestones':'appointments',btn.dataset.id));}catch(err){alert('Could not delete it. Please try again.');}});
+let messaging = null;
+let messagingSupported = false;
 
-const babySizes=['poppy seed','sesame seed','lentil','blueberry','raspberry','cherry','strawberry','lime','plum','lemon','peach','apple','avocado','pear','sweet potato','mango','banana','carrot','papaya','grapefruit','ear of corn','rutabaga','scallion','cauliflower','eggplant','acorn squash','cabbage','coconut','pineapple','butternut squash','cantaloupe','honeydew melon','romaine lettuce','Swiss chard','mini watermelon','pumpkin','watermelon'];
-function parseLocalDate(v){const [y,m,d]=v.split('-').map(Number);return new Date(y,m-1,d);}
-function fmtDate(d){return d.toLocaleDateString(undefined,{month:'long',day:'numeric',year:'numeric'});}
-function renderPregnancy(dueDate){
- const has=!!dueDate; $('dueUnknown').hidden=has; $('pregnancyStats').hidden=!has; $('dueDateForm').hidden=true;
- if(!has)return;
- const due=parseLocalDate(dueDate), today=new Date(); today.setHours(0,0,0,0); due.setHours(0,0,0,0);
- const daysTo=Math.round((due-today)/86400000); const gestDays=280-daysTo; const weeks=Math.floor(gestDays/7), days=((gestDays%7)+7)%7;
- $('pregnancyWeek').textContent=gestDays>=0?`${weeks} weeks, ${days} days`:'Due date is in the future';
- $('dueDateText').textContent=`Estimated due date: ${fmtDate(due)}`;
- const tri=weeks<14?'First':weeks<28?'Second':'Third'; $('trimesterText').textContent=tri;
- $('countdownText').textContent=daysTo>=0?daysTo:'♡';
- const size=weeks>=4&&weeks<=40?babySizes[Math.min(weeks-4,babySizes.length-1)]:'growing'; $('babySizeText').textContent=size;
- $('babyWeekText').textContent=weeks>=4&&weeks<=40?`Baby is about the size of a ${size} this week. Every pregnancy develops at its own pace. ♡`:'';
- $('dueDateInput').value=dueDate;
-}
-$('showDueDateBtn').addEventListener('click',()=>{$('dueUnknown').hidden=true;$('dueDateForm').hidden=false;});
-$('cancelDueDateBtn').addEventListener('click',()=>{renderPregnancy($('dueDateInput').dataset.saved||'');});
-$('editDueDateBtn').addEventListener('click',()=>{$('pregnancyStats').hidden=true;$('dueDateForm').hidden=false;});
-$('dueDateForm').addEventListener('submit',async e=>{
- e.preventDefault(); if(!auth.currentUser)return; const v=$('dueDateInput').value; if(!v)return;
- $('dueDateStatus').textContent='Saving…';
- try{await setDoc(doc(db,'shared','pregnancy'),{dueDate:v,updatedBy:auth.currentUser.uid,updatedAt:serverTimestamp()},{merge:true}); $('dueDateInput').dataset.saved=v; $('dueDateStatus').textContent='Due date saved ♡';}
- catch(err){$('dueDateStatus').textContent='Could not save. Try again ♡';}
-});
+const $ = id => document.getElementById(id);
 
-  // Daily Check-In ♡
+const todayKey = () =>
+  new Date().toLocaleDateString("en-CA");
+
+
+let unsubMessage = null;
+let unsubPrenatal = null;
+let unsubPregnancy = null;
+let unsubMilestones = null;
+let unsubAppointments = null;
+let unsubCheckin = null;
+
+
+/* DAILY CHECK-IN VARIABLES */
+
 let selectedMood = "";
 let selectedSymptoms = [];
 
-const moodButtons = document.querySelectorAll(".mood-btn");
-const symptomButtons = document.querySelectorAll(".symptom-btn");
-const checkinNote = $("checkinNote");
-const saveCheckinBtn = $("saveCheckinBtn");
-const checkinStatus = $("checkinStatus");
+const moodButtons =
+  document.querySelectorAll(".mood-btn");
 
-moodButtons.forEach(btn => {
-  btn.addEventListener("click", () => {
-    selectedMood = btn.dataset.mood;
+const symptomButtons =
+  document.querySelectorAll(".symptom-btn");
 
-    moodButtons.forEach(b => b.classList.remove("selected"));
-    btn.classList.add("selected");
-  });
-});
+const checkinNote =
+  $("checkinNote");
 
-symptomButtons.forEach(btn => {
-  btn.addEventListener("click", () => {
-    btn.classList.toggle("selected");
+const saveCheckinBtn =
+  $("saveCheckinBtn");
 
-    selectedSymptoms = [...symptomButtons]
-      .filter(b => b.classList.contains("selected"))
-      .map(b => b.textContent.trim());
-  });
-});
+const checkinStatus =
+  $("checkinStatus");
 
-function loadTodayCheckin() {
-  if (!auth.currentUser) return;
 
-  return onSnapshot(
-    doc(db, "dailyCheckins", todayKey()),
-    snap => {
-      selectedMood = "";
-      selectedSymptoms = [];
-
-      moodButtons.forEach(btn => btn.classList.remove("selected"));
-      symptomButtons.forEach(btn => btn.classList.remove("selected"));
-
-      if (!snap.exists()) {
-        checkinNote.value = "";
-        checkinStatus.textContent = "Nothing saved yet ♡";
-        return;
-      }
-
-      const data = snap.data();
-
-      selectedMood = data.mood || "";
-      selectedSymptoms = Array.isArray(data.symptoms) ? data.symptoms : [];
-
-      moodButtons.forEach(btn => {
-        if (btn.dataset.mood === selectedMood) {
-          btn.classList.add("selected");
-        }
-      });
-
-      symptomButtons.forEach(btn => {
-        if (selectedSymptoms.includes(btn.textContent.trim())) {
-          btn.classList.add("selected");
-        }
-      });
-
-      checkinNote.value = data.note || "";
-
-      const symptomCount = selectedSymptoms.length;
-      checkinStatus.textContent =
-        `Today's check-in: ${selectedMood || "No mood"} · ${symptomCount} symptom${symptomCount === 1 ? "" : "s"} ♡`;
-    },
-    err => {
-      console.error("Check-in listener error:", err);
-      checkinStatus.textContent = "Could not load today's check-in.";
+$("today").textContent =
+  new Date().toLocaleDateString(
+    undefined,
+    {
+      weekday: "long",
+      month: "long",
+      day: "numeric"
     }
   );
-}
 
-saveCheckinBtn.addEventListener("click", async () => {
-  if (!auth.currentUser) return;
 
-  if (!selectedMood) {
-    checkinStatus.textContent = "Pick how you're feeling first ♡";
+/* LOGIN */
+
+$("loginForm").addEventListener(
+  "submit",
+  async e => {
+
+    e.preventDefault();
+
+    $("loginError").textContent =
+      "Signing in…";
+
+    try {
+
+      await signInWithEmailAndPassword(
+        auth,
+        $("emailInput").value.trim(),
+        $("passwordInput").value
+      );
+
+      $("passwordInput").value = "";
+
+      $("loginError").textContent = "";
+
+    } catch (err) {
+
+      $("loginError").textContent =
+        "Could not sign in. Check the email and password.";
+
+    }
+
+  }
+);
+
+
+$("signOutBtn").addEventListener(
+  "click",
+  () => signOut(auth)
+);
+
+
+/* AUTH + FIRESTORE LISTENERS */
+
+onAuthStateChanged(auth, user => {
+
+  if (unsubMessage) unsubMessage();
+  if (unsubPrenatal) unsubPrenatal();
+  if (unsubPregnancy) unsubPregnancy();
+  if (unsubMilestones) unsubMilestones();
+  if (unsubAppointments) unsubAppointments();
+  if (unsubCheckin) unsubCheckin();
+
+  if (!user) {
+
+    $("loginOverlay").hidden = false;
+    $("signedInAs").textContent = "";
+    $("syncStatus").textContent = "Signed out";
+
     return;
   }
 
-  checkinStatus.textContent = "Saving...";
 
-  try {
-    await setDoc(
-      doc(db, "dailyCheckins", todayKey()),
-      {
-        date: todayKey(),
-        mood: selectedMood,
-        symptoms: selectedSymptoms,
-        note: checkinNote.value.trim(),
-        updatedBy: auth.currentUser.uid,
-        updatedAt: serverTimestamp()
-      },
-      { merge: true }
+  $("loginOverlay").hidden = true;
+
+  const isDad =
+    user.uid === DAD_UID;
+
+  $("signedInAs").textContent =
+    isDad ? "Dad" : "Microbia";
+
+  $("syncStatus").textContent =
+    "Synced ♡";
+
+  $("roleGreeting").innerHTML =
+    isDad
+      ? "Hey,<em>Dad ♡</em>"
+      : "Good morning,<em>Microbia ♡</em>";
+
+  document.querySelector(".dad-only").hidden =
+    !isDad;
+
+
+  /* DAD MESSAGE */
+
+  const msgRef =
+    doc(db, "shared", "dadMessage");
+
+  unsubMessage =
+    onSnapshot(msgRef, snap => {
+
+      if (
+        snap.exists() &&
+        snap.data().text
+      ) {
+        $("dadMessage").textContent =
+          "“" + snap.data().text + "”";
+      }
+
+    });
+
+
+  /* PREGNANCY */
+
+  const pregnancyRef =
+    doc(db, "shared", "pregnancy");
+
+  unsubPregnancy =
+    onSnapshot(
+      pregnancyRef,
+      snap => {
+
+        const due =
+          snap.exists()
+            ? snap.data().dueDate
+            : null;
+
+        $("dueDateInput").dataset.saved =
+          due || "";
+
+        renderPregnancy(due);
+
+      }
     );
 
-    checkinStatus.textContent = "Today's check-in is saved ♡";
-  } catch (err) {
-    console.error("Could not save check-in:", err);
-    checkinStatus.textContent = "Could not save. Try again ♡";
-  }
+
+  /* PRENATAL */
+
+  const preRef =
+    doc(
+      db,
+      "prenatals",
+      todayKey()
+    );
+
+  unsubPrenatal =
+    onSnapshot(
+      preRef,
+      snap => {
+
+        const taken =
+          snap.exists() &&
+          snap.data().taken === true;
+
+        $("takenBtn").disabled =
+          taken;
+
+        $("takenBtn").textContent =
+          taken
+            ? "✓ Prenatal taken today"
+            : "♡ I took my prenatal";
+
+        $("takenStatus").textContent =
+          taken
+            ? "You did it, Mama! ♡"
+            : "Not marked yet";
+
+      }
+    );
+
+
+  /* MILESTONES */
+
+  unsubMilestones =
+    onSnapshot(
+      query(
+        collection(db, "milestones"),
+        orderBy("date", "desc")
+      ),
+      snap =>
+        renderTimeline(
+          "milestoneList",
+          snap,
+          "milestone"
+        )
+    );
+
+
+  /* APPOINTMENTS */
+
+  unsubAppointments =
+    onSnapshot(
+      query(
+        collection(db, "appointments"),
+        orderBy("date", "asc")
+      ),
+      snap =>
+        renderTimeline(
+          "appointmentList",
+          snap,
+          "appointment"
+        )
+    );
+
+
+  /* DAILY CHECK-IN */
+
+  unsubCheckin =
+    loadTodayCheckin();
+
 });
 
+
+/* NOTIFICATIONS */
+
+async function prepareMessaging() {
+
+  const btn =
+    $("enableNotificationsBtn");
+
+  if (
+    !("Notification" in window) ||
+    !("serviceWorker" in navigator) ||
+    !(await isSupported())
+  ) {
+
+    btn.disabled = true;
+
+    $("notificationStatus").textContent =
+      "Push notifications are not supported on this browser.";
+
+    return;
+  }
+
+
+  messagingSupported = true;
+
+  messaging =
+    getMessaging(app);
+
+
+  if (
+    Notification.permission ===
+    "granted"
+  ) {
+
+    $("notificationStatus").textContent =
+      "Notifications are allowed on this device ♡";
+
+  } else if (
+    Notification.permission ===
+    "denied"
+  ) {
+
+    $("notificationStatus").textContent =
+      "Notifications are blocked in your browser settings.";
+
+  }
+
+}
+
+
+async function registerPushToken() {
+
+  if (
+    !auth.currentUser ||
+    !messagingSupported ||
+    !messaging
+  ) return;
+
+
+  const btn =
+    $("enableNotificationsBtn");
+
+  btn.disabled = true;
+
+  $("notificationStatus").textContent =
+    "Turning on notifications…";
+
+
+  try {
+
+    const permission =
+      await Notification.requestPermission();
+
+
+    if (
+      permission !== "granted"
+    ) {
+
+      $("notificationStatus").textContent =
+        permission === "denied"
+          ? "Notifications were blocked. You can change this in browser settings."
+          : "Notifications were not enabled.";
+
+      return;
+    }
+
+
+    const registration =
+      await navigator.serviceWorker.register(
+        "./sw.js"
+      );
+
+
+    await navigator.serviceWorker.ready;
+
+
+    const token =
+      await getToken(
+        messaging,
+        {
+          vapidKey: VAPID_KEY,
+          serviceWorkerRegistration:
+            registration
+        }
+      );
+
+
+    if (!token)
+      throw new Error(
+        "No FCM token"
+      );
+
+
+    const digest =
+      await crypto.subtle.digest(
+        "SHA-256",
+        new TextEncoder().encode(token)
+      );
+
+
+    const tokenId =
+      Array.from(
+        new Uint8Array(digest)
+      )
+        .map(
+          b =>
+            b
+              .toString(16)
+              .padStart(2, "0")
+        )
+        .join("")
+        .slice(0, 40);
+
+
+    await setDoc(
+      doc(
+        db,
+        "pushTokens",
+        tokenId
+      ),
+      {
+        token,
+        uid:
+          auth.currentUser.uid,
+        role:
+          auth.currentUser.uid ===
+          DAD_UID
+            ? "Dad"
+            : "Microbia",
+        enabled: true,
+        preferences: {
+          prenatal: true,
+          appointments: true,
+          messages: true
+        },
+        updatedAt:
+          serverTimestamp()
+      },
+      {
+        merge: true
+      }
+    );
+
+
+    $("notificationStatus").textContent =
+      "Notifications are on for this device ♡";
+
+
+  } catch (err) {
+
+    console.error(err);
+
+    $("notificationStatus").textContent =
+      "Could not enable notifications. Try again ♡";
+
+  } finally {
+
+    btn.disabled = false;
+
+  }
+
+}
+
+
+$("enableNotificationsBtn")
+  .addEventListener(
+    "click",
+    registerPushToken
+  );
+
+
+prepareMessaging().then(() => {
+
+  if (messaging) {
+
+    onMessage(
+      messaging,
+      payload => {
+
+        const title =
+          payload.notification?.title ||
+          payload.data?.title ||
+          "Baby Steps ♡";
+
+        const body =
+          payload.notification?.body ||
+          payload.data?.body ||
+          "You have a new Baby Steps reminder.";
+
+
+        if (
+          Notification.permission ===
+          "granted"
+        ) {
+
+          new Notification(
+            title,
+            { body }
+          );
+
+        }
+
+      }
+    );
+
+  }
+
+});
+
+
+/* PRENATAL BUTTON */
+
+$("takenBtn").addEventListener(
+  "click",
+  async () => {
+
+    if (!auth.currentUser)
+      return;
+
+
+    $("takenStatus").textContent =
+      "Saving…";
+
+
+    try {
+
+      await setDoc(
+        doc(
+          db,
+          "prenatals",
+          todayKey()
+        ),
+        {
+          taken: true,
+          takenBy:
+            auth.currentUser.uid,
+          updatedAt:
+            serverTimestamp()
+        },
+        {
+          merge: true
+        }
+      );
+
+    } catch (e) {
+
+      $("takenStatus").textContent =
+        "Could not save. Try again ♡";
+
+    }
+
+  }
+);
+
+
+/* DAD MESSAGE */
+
+$("messageForm").addEventListener(
+  "submit",
+  async e => {
+
+    e.preventDefault();
+
+
+    if (
+      !auth.currentUser ||
+      auth.currentUser.uid !==
+      DAD_UID
+    ) return;
+
+
+    const v =
+      $("messageInput")
+        .value
+        .trim();
+
+
+    if (!v) {
+
+      $("messageStatus").textContent =
+        "Write a message first ♡";
+
+      return;
+    }
+
+
+    $("messageStatus").textContent =
+      "Sending…";
+
+
+    try {
+
+      await setDoc(
+        doc(
+          db,
+          "shared",
+          "dadMessage"
+        ),
+        {
+          text: v,
+          updatedBy:
+            auth.currentUser.uid,
+          updatedAt:
+            serverTimestamp()
+        },
+        {
+          merge: true
+        }
+      );
+
+
+      $("messageInput").value = "";
+
+      $("messageStatus").textContent =
+        "Message sent to Microbia ♡";
+
+
+    } catch (e) {
+
+      $("messageStatus").textContent =
+        "Could not send. Try again ♡";
+
+    }
+
+  }
+);
+
+
+/* TIMELINE HELPERS */
+
+function escapeHTML(v = "") {
+
+  return v.replace(
+    /[&<>"']/g,
+    c => ({
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      '"': "&quot;",
+      "'": "&#039;"
+    }[c])
+  );
+
+}
+
+
+function prettyStoredDate(v) {
+
+  if (!v) return "";
+
+  const [y, m, d] =
+    v.split("-").map(Number);
+
+  return new Date(
+    y,
+    m - 1,
+    d
+  ).toLocaleDateString(
+    undefined,
+    {
+      month: "short",
+      day: "numeric",
+      year: "numeric"
+    }
+  );
+
+}
+
+
+function renderTimeline(
+  targetId,
+  snap,
+  type
+) {
+
+  const target =
+    $(targetId);
+
+
+  if (snap.empty) {
+
+    target.innerHTML =
+      `<p class="empty-state">${
+        type === "milestone"
+          ? "No milestones yet. Our story is just beginning ♡"
+          : "No appointments added yet ♡"
+      }</p>`;
+
+    return;
+  }
+
+
+  target.innerHTML =
+    snap.docs
+      .map(d => {
+
+        const x =
+          d.data();
+
+
+        const when =
+          prettyStoredDate(
+            x.date
+          ) +
+          (
+            x.time
+              ? ` · ${escapeHTML(x.time)}`
+              : ""
+          );
+
+
+        const location =
+          x.location
+            ? `<p class="timeline-meta">📍 ${escapeHTML(x.location)}</p>`
+            : "";
+
+
+        const note =
+          x.note
+            ? `<p>${escapeHTML(x.note)}</p>`
+            : "";
+
+
+        return `
+          <article class="timeline-item">
+
+            <div class="timeline-dot">
+              ${type === "milestone" ? "♡" : "🩺"}
+            </div>
+
+            <div class="timeline-copy">
+
+              <h3>
+                ${escapeHTML(x.title || "Untitled")}
+              </h3>
+
+              <p class="timeline-date">
+                ${when}
+              </p>
+
+              ${location}
+              ${note}
+
+            </div>
+
+            <button
+              class="delete-entry"
+              type="button"
+              data-kind="${type}"
+              data-id="${d.id}"
+              aria-label="Delete ${type}"
+            >
+              ×
+            </button>
+
+          </article>
+        `;
+
+      })
+      .join("");
+
+}
+
+
+/* ADD MILESTONE */
+
+$("milestoneForm").addEventListener(
+  "submit",
+  async e => {
+
+    e.preventDefault();
+
+    if (!auth.currentUser)
+      return;
+
+
+    $("milestoneStatus").textContent =
+      "Saving memory…";
+
+
+    try {
+
+      await addDoc(
+        collection(
+          db,
+          "milestones"
+        ),
+        {
+          title:
+            $("milestoneTitle")
+              .value
+              .trim(),
+
+          date:
+            $("milestoneDate")
+              .value,
+
+          note:
+            $("milestoneNote")
+              .value
+              .trim(),
+
+          createdBy:
+            auth.currentUser.uid,
+
+          createdAt:
+            serverTimestamp()
+        }
+      );
+
+
+      e.target.reset();
+
+      $("milestoneStatus").textContent =
+        "Milestone saved ♡";
+
+
+    } catch (err) {
+
+      $("milestoneStatus").textContent =
+        "Could not save. Try again ♡";
+
+    }
+
+  }
+);
+
+
+/* ADD APPOINTMENT */
+
+$("appointmentForm").addEventListener(
+  "submit",
+  async e => {
+
+    e.preventDefault();
+
+    if (!auth.currentUser)
+      return;
+
+
+    $("appointmentStatus").textContent =
+      "Saving appointment…";
+
+
+    try {
+
+      await addDoc(
+        collection(
+          db,
+          "appointments"
+        ),
+        {
+          title:
+            $("appointmentTitle")
+              .value
+              .trim(),
+
+          date:
+            $("appointmentDate")
+              .value,
+
+          time:
+            $("appointmentTime")
+              .value,
+
+          location:
+            $("appointmentLocation")
+              .value
+              .trim(),
+
+          note:
+            $("appointmentNote")
+              .value
+              .trim(),
+
+          createdBy:
+            auth.currentUser.uid,
+
+          createdAt:
+            serverTimestamp()
+        }
+      );
+
+
+      e.target.reset();
+
+      $("appointmentStatus").textContent =
+        "Appointment saved ♡";
+
+
+    } catch (err) {
+
+      $("appointmentStatus").textContent =
+        "Could not save. Try again ♡";
+
+    }
+
+  }
+);
+
+
+/* DELETE TIMELINE ITEM */
+
+document.addEventListener(
+  "click",
+  async e => {
+
+    const btn =
+      e.target.closest(
+        ".delete-entry"
+      );
+
+
+    if (
+      !btn ||
+      !auth.currentUser
+    ) return;
+
+
+    if (
+      !confirm(
+        `Delete this ${btn.dataset.kind}?`
+      )
+    ) return;
+
+
+    try {
+
+      await deleteDoc(
+        doc(
+          db,
+          btn.dataset.kind ===
+          "milestone"
+            ? "milestones"
+            : "appointments",
+          btn.dataset.id
+        )
+      );
+
+
+    } catch (err) {
+
+      alert(
+        "Could not delete it. Please try again."
+      );
+
+    }
+
+  }
+);
+
+
+/* PREGNANCY */
+
+const babySizes = [
+  "poppy seed",
+  "sesame seed",
+  "lentil",
+  "blueberry",
+  "raspberry",
+  "cherry",
+  "strawberry",
+  "lime",
+  "plum",
+  "lemon",
+  "peach",
+  "apple",
+  "avocado",
+  "pear",
+  "sweet potato",
+  "mango",
+  "banana",
+  "carrot",
+  "papaya",
+  "grapefruit",
+  "ear of corn",
+  "rutabaga",
+  "scallion",
+  "cauliflower",
+  "eggplant",
+  "acorn squash",
+  "cabbage",
+  "coconut",
+  "pineapple",
+  "butternut squash",
+  "cantaloupe",
+  "honeydew melon",
+  "romaine lettuce",
+  "Swiss chard",
+  "mini watermelon",
+  "pumpkin",
+  "watermelon"
+];
+
+
+function parseLocalDate(v) {
+
+  const [y, m, d] =
+    v.split("-").map(Number);
+
+  return new Date(
+    y,
+    m - 1,
+    d
+  );
+
+}
+
+
+function fmtDate(d) {
+
+  return d.toLocaleDateString(
+    undefined,
+    {
+      month: "long",
+      day: "numeric",
+      year: "numeric"
+    }
+  );
+
+}
+
+
+function renderPregnancy(
+  dueDate
+) {
+
+  const has =
+    !!dueDate;
+
+
+  $("dueUnknown").hidden =
+    has;
+
+  $("pregnancyStats").hidden =
+    !has;
+
+  $("dueDateForm").hidden =
+    true;
+
+
+  if (!has)
+    return;
+
+
+  const due =
+    parseLocalDate(
+      dueDate
+    );
+
+
+  const today =
+    new Date();
+
+
+  today.setHours(
+    0,
+    0,
+    0,
+    0
+  );
+
+
+  due.setHours(
+    0,
+    0,
+    0,
+    0
+  );
+
+
+  const daysTo =
+    Math.round(
+      (due - today) /
+      86400000
+    );
+
+
+  const gestDays =
+    280 - daysTo;
+
+
+  const weeks =
+    Math.floor(
+      gestDays / 7
+    );
+
+
+  const days =
+    (
+      (gestDays % 7) +
+      7
+    ) % 7;
+
+
+  $("pregnancyWeek").textContent =
+    gestDays >= 0
+      ? `${weeks} weeks, ${days} days`
+      : "Due date is in the future";
+
+
+  $("dueDateText").textContent =
+    `Estimated due date: ${fmtDate(due)}`;
+
+
+  const tri =
+    weeks < 14
+      ? "First"
+      : weeks < 28
+        ? "Second"
+        : "Third";
+
+
+  $("trimesterText").textContent =
+    tri;
+
+
+  $("countdownText").textContent =
+    daysTo >= 0
+      ? daysTo
+      : "♡";
+
+
+  const size =
+    weeks >= 4 &&
+    weeks <= 40
+      ? babySizes[
+          Math.min(
+            weeks - 4,
+            babySizes.length - 1
+          )
+        ]
+      : "growing";
+
+
+  $("babySizeText").textContent =
+    size;
+
+
+  $("babyWeekText").textContent =
+    weeks >= 4 &&
+    weeks <= 40
+      ? `Baby is about the size of a ${size} this week. Every pregnancy develops at its own pace. ♡`
+      : "";
+
+
+  $("dueDateInput").value =
+    dueDate;
+
+}
+
+
+$("showDueDateBtn").addEventListener(
+  "click",
+  () => {
+
+    $("dueUnknown").hidden =
+      true;
+
+    $("dueDateForm").hidden =
+      false;
+
+  }
+);
+
+
+$("cancelDueDateBtn").addEventListener(
+  "click",
+  () => {
+
+    renderPregnancy(
+      $("dueDateInput")
+        .dataset
+        .saved || ""
+    );
+
+  }
+);
+
+
+$("editDueDateBtn").addEventListener(
+  "click",
+  () => {
+
+    $("pregnancyStats").hidden =
+      true;
+
+    $("dueDateForm").hidden =
+      false;
+
+  }
+);
+
+
+$("dueDateForm").addEventListener(
+  "submit",
+  async e => {
+
+    e.preventDefault();
+
+    if (!auth.currentUser)
+      return;
+
+
+    const v =
+      $("dueDateInput").value;
+
+
+    if (!v)
+      return;
+
+
+    $("dueDateStatus").textContent =
+      "Saving…";
+
+
+    try {
+
+      await setDoc(
+        doc(
+          db,
+          "shared",
+          "pregnancy"
+        ),
+        {
+          dueDate: v,
+          updatedBy:
+            auth.currentUser.uid,
+          updatedAt:
+            serverTimestamp()
+        },
+        {
+          merge: true
+        }
+      );
+
+
+      $("dueDateInput")
+        .dataset
+        .saved = v;
+
+
+      $("dueDateStatus").textContent =
+        "Due date saved ♡";
+
+
+    } catch (err) {
+
+      $("dueDateStatus").textContent =
+        "Could not save. Try again ♡";
+
+    }
+
+  }
+);
+
+
+/* DAILY CHECK-IN BUTTONS */
+
+moodButtons.forEach(
+  btn => {
+
+    btn.addEventListener(
+      "click",
+      () => {
+
+        selectedMood =
+          btn.dataset.mood;
+
+
+        moodButtons.forEach(
+          b =>
+            b.classList.remove(
+              "selected"
+            )
+        );
+
+
+        btn.classList.add(
+          "selected"
+        );
+
+      }
+    );
+
+  }
+);
+
+
+symptomButtons.forEach(
+  btn => {
+
+    btn.addEventListener(
+      "click",
+      () => {
+
+        btn.classList.toggle(
+          "selected"
+        );
+
+
+        selectedSymptoms =
+          [...symptomButtons]
+            .filter(
+              b =>
+                b.classList.contains(
+                  "selected"
+                )
+            )
+            .map(
+              b =>
+                b.textContent.trim()
+            );
+
+      }
+    );
+
+  }
+);
+
+
+/* LOAD TODAY'S CHECK-IN */
+
+function loadTodayCheckin() {
+
+  if (!auth.currentUser)
+    return null;
+
+
+  return onSnapshot(
+
+    doc(
+      db,
+      "dailyCheckins",
+      todayKey()
+    ),
+
+    snap => {
+
+      selectedMood = "";
+      selectedSymptoms = [];
+
+
+      moodButtons.forEach(
+        btn =>
+          btn.classList.remove(
+            "selected"
+          )
+      );
+
+
+      symptomButtons.forEach(
+        btn =>
+          btn.classList.remove(
+            "selected"
+          )
+      );
+
+
+      if (!snap.exists()) {
+
+        checkinNote.value = "";
+
+        checkinStatus.textContent =
+          "Nothing saved yet ♡";
+
+        return;
+      }
+
+
+      const data =
+        snap.data();
+
+
+      selectedMood =
+        data.mood || "";
+
+
+      selectedSymptoms =
+        Array.isArray(
+          data.symptoms
+        )
+          ? data.symptoms
+          : [];
+
+
+      moodButtons.forEach(
+        btn => {
+
+          if (
+            btn.dataset.mood ===
+            selectedMood
+          ) {
+
+            btn.classList.add(
+              "selected"
+            );
+
+          }
+
+        }
+      );
+
+
+      symptomButtons.forEach(
+        btn => {
+
+          if (
+            selectedSymptoms.includes(
+              btn.textContent.trim()
+            )
+          ) {
+
+            btn.classList.add(
+              "selected"
+            );
+
+          }
+
+        }
+      );
+
+
+      checkinNote.value =
+        data.note || "";
+
+
+      const symptomCount =
+        selectedSymptoms.length;
+
+
+      checkinStatus.textContent =
+        `Today's check-in: ${
+          selectedMood ||
+          "No mood"
+        } · ${
+          symptomCount
+        } symptom${
+          symptomCount === 1
+            ? ""
+            : "s"
+        } ♡`;
+
+    },
+
+    err => {
+
+      console.error(
+        "Check-in listener error:",
+        err
+      );
+
+
+      checkinStatus.textContent =
+        "Could not load today's check-in.";
+
+    }
+
+  );
+
+}
+
+
+/* SAVE TODAY'S CHECK-IN */
+
+saveCheckinBtn.addEventListener(
+  "click",
+  async () => {
+
+    if (!auth.currentUser)
+      return;
+
+
+    if (!selectedMood) {
+
+      checkinStatus.textContent =
+        "Pick how you're feeling first ♡";
+
+      return;
+    }
+
+
+    checkinStatus.textContent =
+      "Saving...";
+
+
+    try {
+
+      await setDoc(
+
+        doc(
+          db,
+          "dailyCheckins",
+          todayKey()
+        ),
+
+        {
+          date:
+            todayKey(),
+
+          mood:
+            selectedMood,
+
+          symptoms:
+            selectedSymptoms,
+
+          note:
+            checkinNote
+              .value
+              .trim(),
+
+          updatedBy:
+            auth.currentUser.uid,
+
+          updatedAt:
+            serverTimestamp()
+        },
+
+        {
+          merge: true
+        }
+
+      );
+
+
+      checkinStatus.textContent =
+        "Today's check-in is saved ♡";
+
+
+    } catch (err) {
+
+      console.error(
+        "Could not save check-in:",
+        err
+      );
+
+
+      checkinStatus.textContent =
+        "Could not save. Try again ♡";
+
+    }
+
+  }
+);
+
 </script>
-</body></html>
+
+</body>
+</html>
