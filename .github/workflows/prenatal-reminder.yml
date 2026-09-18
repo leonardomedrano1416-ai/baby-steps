@@ -1,4 +1,4 @@
-name: Baby Steps Prenatal Reminder
+name: Baby Steps Daily Reminders
 
 on:
   workflow_dispatch:
@@ -11,7 +11,7 @@ permissions:
   id-token: write
 
 jobs:
-  send-prenatal-reminder:
+  send-dad-reminder:
     runs-on: ubuntu-latest
 
     steps:
@@ -21,6 +21,34 @@ jobs:
           workload_identity_provider: "projects/737826285998/locations/global/workloadIdentityPools/baby-steps-github/providers/github"
           service_account: "firebase-adminsdk-fbsvc@baby-steps-2c470.iam.gserviceaccount.com"
 
-      - name: Send prenatal reminder
+      - name: Get Google access token
+        id: google-auth
         run: |
-          echo "Baby Steps authentication successful ♡"
+          echo "ACCESS_TOKEN=$(gcloud auth print-access-token)" >> "$GITHUB_OUTPUT"
+
+      - name: Send Dad's Corner reminder
+        env:
+          DAD_FCM_TOKEN: ${{ secrets.DAD_FCM_TOKEN }}
+          ACCESS_TOKEN: ${{ steps.google-auth.outputs.ACCESS_TOKEN }}
+        run: |
+          curl --fail-with-body \
+            -X POST \
+            -H "Authorization: Bearer $ACCESS_TOKEN" \
+            -H "Content-Type: application/json" \
+            "https://fcm.googleapis.com/v1/projects/baby-steps-2c470/messages:send" \
+            -d "$(jq -n \
+              --arg token "$DAD_FCM_TOKEN" \
+              '{
+                message: {
+                  token: $token,
+                  notification: {
+                    title: "Dad'\''s Corner ♡",
+                    body: "Don'\''t forget to write Microbia a little message today ♡"
+                  },
+                  webpush: {
+                    fcm_options: {
+                      link: "https://leonardomedrano1416-ai.github.io/baby-steps/"
+                    }
+                  }
+                }
+              }')"
