@@ -1,0 +1,96 @@
+name: Dad Message Notification
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "*/5 * * * *"
+
+permissions:
+  contents: read
+  id-token: write
+  actions: read
+
+jobs:
+  check-dad-message:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v3
+        with:
+          workload_identity_provider: "projects/737826285998/locations/global/workloadIdentityPools/baby-steps-github/providers/github"
+          service_account: "firebase-adminsdk-fbsvc@baby-steps-2c470.iam.gserviceaccount.com"
+
+      - name: Get Google access token
+        id: google-auth
+        run: |
+          echo "ACCESS_TOKEN=$(gcloud auth print-access-token)" >> "$GITHUB_OUTPUT"
+
+      - name: Check Dad's Corner message
+        env:
+          ACCESS_TOKEN: ${{ steps.google-auth.outputs.ACCESS_TOKEN }}
+          MICROBIA_FCM_TOKEN: ${{ secrets.MICROBIA_FCM_TOKEN }}
+        run: |
+          MESSAGE=$(curl --fail-with-body \
+            -H "Authorization: Bearer $ACCESS_TOKEN" \
+            "https://firestore.googleapis.com/v1/projects/baby-steps-2c470/databases/(default)/documents/shared/dadMessage")
+
+          TEXT=$(echo "$MESSAGE" | jq -r '.fields.text.stringValue // ""')
+          UPDATED=$(echo "$MESSAGE" | jq -r '.fields.updatedAt.timestampValue // ""')
+          UPDATED_BY=$(echo "$MESSAGE" | jq -r '.fields.updatedBy.stringValue // ""')
+
+          DAD_UID="quwZWCn1IoUGT5NwEygn6eKCxTE3"
+
+          if [ -z "$TEXT" ] || [ -z "$UPDATED" ] || [ "$UPDATED_BY" != "$DAD_UID" ]; then
+            echo "No new Dad message to process."
+            exit 0
+          fi
+
+          STATE=$(curl --silent --fail \
+            -H "Authorization: Bearer $ACCESS_TOKEN" \
+            "https://firestore.googleapis.com/v1/projects/baby-steps-2c470/databases/(default)/documents/notificationState/dadMessage" \
+            || true)
+
+          LAST_NOTIFIED=$(echo "$STATE" | jq -r '.fields.lastNotifiedAt.timestampValue // ""' 2>/dev/null || true)
+
+          if [ "$UPDATED" = "$LAST_NOTIFIED" ]; then
+            echo "Microbia has already been notified about this message."
+            exit 0
+          fi
+
+          curl --fail-with-body \
+            -X POST \
+            -H "Authorization: Bearer $ACCESS_TOKEN" \
+            -H "Content-Type: application/json" \
+            "https://fcm.googleapis.com/v1/projects/baby-steps-2c470/messages:send" \
+            -d "$(jq -n \
+              --arg token "$MICROBIA_FCM_TOKEN" \
+              '{
+                message: {
+                  token: $token,
+                  notification: {
+                    title: "Dad left you a message ♡",
+                    body: "There'\''s a little something waiting for you in Baby Steps ♡"
+                  },
+                  webpush: {
+                    fcm_options: {
+                      link: "https://leonardomedrano1416-ai.github.io/baby-steps/"
+                    }
+                  }
+                }
+              }')"
+
+          curl --fail-with-body \
+            -X PATCH \
+            -H "Authorization: Bearer $ACCESS_TOKEN" \
+            -H "Content-Type: application/json" \
+            "https://firestore.googleapis.com/v1/projects/baby-steps-2c470/databases/(default)/documents/notificationState/dadMessage?updateMask.fieldPaths=lastNotifiedAt" \
+            -d "$(jq -n \
+              --arg updated "$UPDATED" \
+              '{
+                fields: {
+                  lastNotifiedAt: {
+                    timestampValue: $updated
+                  }
+                }
+              }')"
