@@ -1,0 +1,26 @@
+name: Baby Steps Prenatal Reminder
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 8 * * *"
+      timezone: "America/Chicago"
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  send-prenatal-reminder:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v3
+        with:
+          workload_identity_provider: "projects/737826285998/locations/global/workloadIdentityPools/baby-steps-github/providers/github"
+          service_account: "firebase-adminsdk-fbsvc@baby-steps-2c470.iam.gserviceaccount.com"
+
+      - name: Send prenatal reminder
+        run: |
+          echo "Baby Steps authentication successful ♡"
