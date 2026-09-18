@@ -37,7 +37,82 @@
   <button id="takenBtn">♡ I took my prenatal</button>
   <p id="takenStatus" class="center" aria-live="polite">Not marked yet</p>
 </section>
+<section id="dailyCheckin" class="card daily-checkin">
+  <div class="sectionline">
+    <span>♡</span>
+    <b>DAILY CHECK-IN</b>
+    <span class="badge">🌷</span>
+  </div>
 
+  <h2>How are you feeling today?</h2>
+  <p class="center checkin-subtitle">Pick the mood that feels closest ♡</p>
+
+  <div class="mood-options" id="moodOptions">
+    <button type="button" class="mood-btn" data-mood="Great">
+      <span>😊</span>
+      <small>Great</small>
+    </button>
+
+    <button type="button" class="mood-btn" data-mood="Good">
+      <span>🙂</span>
+      <small>Good</small>
+    </button>
+
+    <button type="button" class="mood-btn" data-mood="Okay">
+      <span>😐</span>
+      <small>Okay</small>
+    </button>
+
+    <button type="button" class="mood-btn" data-mood="Rough">
+      <span>😣</span>
+      <small>Rough</small>
+    </button>
+
+    <button type="button" class="mood-btn" data-mood="Awful">
+      <span>😭</span>
+      <small>Awful</small>
+    </button>
+  </div>
+
+  <h3 class="checkin-heading">Symptoms today</h3>
+
+  <div class="symptom-options" id="symptomOptions">
+    <button type="button" class="symptom-btn">Nausea</button>
+    <button type="button" class="symptom-btn">Vomiting</button>
+    <button type="button" class="symptom-btn">Fatigue</button>
+    <button type="button" class="symptom-btn">Cramps</button>
+    <button type="button" class="symptom-btn">Headache</button>
+    <button type="button" class="symptom-btn">Dizziness</button>
+    <button type="button" class="symptom-btn">Bloating</button>
+    <button type="button" class="symptom-btn">Heartburn</button>
+    <button type="button" class="symptom-btn">Backache</button>
+    <button type="button" class="symptom-btn">Breast tenderness</button>
+    <button type="button" class="symptom-btn">Constipation</button>
+    <button type="button" class="symptom-btn">Food aversion</button>
+    <button type="button" class="symptom-btn">Cravings</button>
+    <button type="button" class="symptom-btn">Frequent urination</button>
+    <button type="button" class="symptom-btn">Mood changes</button>
+    <button type="button" class="symptom-btn">Trouble sleeping</button>
+  </div>
+
+  <label class="checkin-heading" for="checkinNote">
+    Anything you want Dad to know?
+  </label>
+
+  <textarea
+    id="checkinNote"
+    rows="3"
+    placeholder="Tell Dad a little about your day ♡"
+  ></textarea>
+
+  <button type="button" id="saveCheckinBtn">
+    ♡ Save today's check-in
+  </button>
+
+  <p id="checkinStatus" class="center" aria-live="polite">
+    Nothing saved yet ♡
+  </p>
+</section>
 <div class="dashboard">
   <section class="card greeting">
     <div class="heart">♥</div>
