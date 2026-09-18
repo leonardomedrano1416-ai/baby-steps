@@ -105,7 +105,7 @@
     placeholder="Tell Dad a little about your day ♡"
   ></textarea>
 
-  <button type="button" id="saveCheckinBtn">
+  <button type="button" id="saveCFheckinBtn">
     ♡ Save today's check-in
   </button>
 
@@ -260,7 +260,7 @@ onAuthStateChanged(auth,user=>{
    $('takenStatus').textContent=taken?'You did it, Mama! ♡':'Not marked yet';
  });
  unsubMilestones=onSnapshot(query(collection(db,'milestones'),orderBy('date','desc')),snap=>renderTimeline('milestoneList',snap,'milestone'));
- unsubAppointments=onSnapshot(query(collection(db,'appointments'),orderBy('date','asc')),snap=>renderTimeline('appointmentList',snap,'appointment'));
+ unsubAppointments=onSnapshot(query(collection(db,'appointments'),orderBy('date','asc')),snap=>renderTimeline('appointmentList',snap,'appointment')) loadTodayCheckin();
 });
 
 async function prepareMessaging(){
@@ -336,6 +336,114 @@ $('dueDateForm').addEventListener('submit',async e=>{
  $('dueDateStatus').textContent='Saving…';
  try{await setDoc(doc(db,'shared','pregnancy'),{dueDate:v,updatedBy:auth.currentUser.uid,updatedAt:serverTimestamp()},{merge:true}); $('dueDateInput').dataset.saved=v; $('dueDateStatus').textContent='Due date saved ♡';}
  catch(err){$('dueDateStatus').textContent='Could not save. Try again ♡';}
+});
+
+  // Daily Check-In ♡
+let selectedMood = "";
+let selectedSymptoms = [];
+
+const moodButtons = document.querySelectorAll(".mood-btn");
+const symptomButtons = document.querySelectorAll(".symptom-btn");
+const checkinNote = $("checkinNote");
+const saveCheckinBtn = $("saveCheckinBtn");
+const checkinStatus = $("checkinStatus");
+
+moodButtons.forEach(btn => {
+  btn.addEventListener("click", () => {
+    selectedMood = btn.dataset.mood;
+
+    moodButtons.forEach(b => b.classList.remove("selected"));
+    btn.classList.add("selected");
+  });
+});
+
+symptomButtons.forEach(btn => {
+  btn.addEventListener("click", () => {
+    btn.classList.toggle("selected");
+
+    selectedSymptoms = [...symptomButtons]
+      .filter(b => b.classList.contains("selected"))
+      .map(b => b.textContent.trim());
+  });
+});
+
+function loadTodayCheckin() {
+  if (!auth.currentUser) return;
+
+  return onSnapshot(
+    doc(db, "dailyCheckins", todayKey()),
+    snap => {
+      selectedMood = "";
+      selectedSymptoms = [];
+
+      moodButtons.forEach(btn => btn.classList.remove("selected"));
+      symptomButtons.forEach(btn => btn.classList.remove("selected"));
+
+      if (!snap.exists()) {
+        checkinNote.value = "";
+        checkinStatus.textContent = "Nothing saved yet ♡";
+        return;
+      }
+
+      const data = snap.data();
+
+      selectedMood = data.mood || "";
+      selectedSymptoms = Array.isArray(data.symptoms) ? data.symptoms : [];
+
+      moodButtons.forEach(btn => {
+        if (btn.dataset.mood === selectedMood) {
+          btn.classList.add("selected");
+        }
+      });
+
+      symptomButtons.forEach(btn => {
+        if (selectedSymptoms.includes(btn.textContent.trim())) {
+          btn.classList.add("selected");
+        }
+      });
+
+      checkinNote.value = data.note || "";
+
+      const symptomCount = selectedSymptoms.length;
+      checkinStatus.textContent =
+        `Today's check-in: ${selectedMood || "No mood"} · ${symptomCount} symptom${symptomCount === 1 ? "" : "s"} ♡`;
+    },
+    err => {
+      console.error("Check-in listener error:", err);
+      checkinStatus.textContent = "Could not load today's check-in.";
+    }
+  );
+}
+
+saveCheckinBtn.addEventListener("click", async () => {
+  if (!auth.currentUser) return;
+
+  if (!selectedMood) {
+    checkinStatus.textContent = "Pick how you're feeling first ♡";
+    return;
+  }
+
+  checkinStatus.textContent = "Saving...";
+
+  try {
+    await setDoc(
+      doc(db, "dailyCheckins", todayKey()),
+      {
+        date: todayKey(),
+        mood: selectedMood,
+        symptoms: selectedSymptoms,
+        note: checkinNote.value.trim(),
+        updatedBy: auth.currentUser.uid,
+        updatedAt: serverTimestamp()
+      },
+      { merge: true }
+    );
+
+    checkinStatus.textContent = "Today's check-in is saved ♡";
+  } catch (err) {
+    console.error("Could not save check-in:", err);
+    checkinStatus.textContent = "Could not save. Try again ♡";
+  }
 });
 
 </script>
