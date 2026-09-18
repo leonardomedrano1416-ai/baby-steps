@@ -3,7 +3,7 @@ name: Baby Steps Daily Reminders
 on:
   workflow_dispatch:
   schedule:
-    - cron: "0 8 * * *"
+    - cron: "7 8 * * *"
       timezone: "America/Chicago"
 
 permissions:
@@ -79,3 +79,68 @@ jobs:
                   }
                 }
               }')"
+
+      - name: Check appointments and notify both phones
+        env:
+          DAD_FCM_TOKEN: ${{ secrets.DAD_FCM_TOKEN }}
+          MICROBIA_FCM_TOKEN: ${{ secrets.MICROBIA_FCM_TOKEN }}
+          ACCESS_TOKEN: ${{ steps.google-auth.outputs.ACCESS_TOKEN }}
+        run: |
+          TODAY=$(TZ=America/Chicago date +%F)
+          TOMORROW=$(TZ=America/Chicago date -d tomorrow +%F)
+
+          APPOINTMENTS=$(curl --fail-with-body \
+            -H "Authorization: Bearer $ACCESS_TOKEN" \
+            "https://firestore.googleapis.com/v1/projects/baby-steps-2c470/databases/(default)/documents/appointments")
+
+          echo "$APPOINTMENTS" | jq -c '.documents[]?' | while read -r DOC; do
+            DATE=$(echo "$DOC" | jq -r '.fields.date.stringValue // ""')
+            TIME=$(echo "$DOC" | jq -r '.fields.time.stringValue // ""')
+            TITLE=$(echo "$DOC" | jq -r '.fields.title.stringValue // "Appointment"')
+
+            if [ "$DATE" = "$TODAY" ]; then
+              NOTIFICATION_TITLE="Appointment Day ♡"
+              BODY="You have $TITLE today"
+              if [ -n "$TIME" ]; then
+                BODY="$BODY at $TIME"
+              fi
+              BODY="$BODY ♡"
+
+            elif [ "$DATE" = "$TOMORROW" ]; then
+              NOTIFICATION_TITLE="Baby Steps ♡"
+              BODY="You have an appointment tomorrow: $TITLE"
+              if [ -n "$TIME" ]; then
+                BODY="$BODY at $TIME"
+              fi
+              BODY="$BODY ♡"
+
+            else
+              continue
+            fi
+
+            for TOKEN in "$DAD_FCM_TOKEN" "$MICROBIA_FCM_TOKEN"; do
+              curl --fail-with-body \
+                -X POST \
+                -H "Authorization: Bearer $ACCESS_TOKEN" \
+                -H "Content-Type: application/json" \
+                "https://fcm.googleapis.com/v1/projects/baby-steps-2c470/messages:send" \
+                -d "$(jq -n \
+                  --arg token "$TOKEN" \
+                  --arg title "$NOTIFICATION_TITLE" \
+                  --arg body "$BODY" \
+                  '{
+                    message: {
+                      token: $token,
+                      notification: {
+                        title: $title,
+                        body: $body
+                      },
+                      webpush: {
+                        fcm_options: {
+                          link: "https://leonardomedrano1416-ai.github.io/baby-steps/"
+                        }
+                      }
+                    }
+                  }')"
+            done
+          done
