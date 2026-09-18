@@ -10,7 +10,86 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="stylesheet" href="styles.css?v=6.1">
 <title>Baby Steps</title>
-</head>
+<style>
+  /* Dad + Microbia profile pictures */
+  .profile-card {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 28px;
+    padding: 18px 20px;
+    margin-bottom: 18px;
+  }
+
+  .profile-person {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 7px;
+    font-weight: 700;
+    text-align: center;
+  }
+
+  .profile-photo-btn {
+    width: 78px;
+    height: 78px;
+    border-radius: 50%;
+    padding: 3px;
+    border: 3px solid #8f3f59;
+    background: #fff;
+    overflow: hidden;
+    cursor: pointer;
+  }
+
+  .profile-photo {
+    width: 100%;
+    height: 100%;
+    display: block;
+    object-fit: cover;
+    border-radius: 50%;
+  }
+
+  .profile-fallback {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: #f6dfe6;
+    color: #6b263c;
+    font-size: 28px;
+    font-weight: 800;
+  }
+
+  .profile-heart {
+    color: #8f3f59;
+    font-size: 30px;
+  }
+
+  .profile-status {
+    flex-basis: 100%;
+    margin: 0;
+    text-align: center;
+  }
+
+  .profile-photo-btn:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+  }
+
+  @media (max-width: 520px) {
+    .profile-card {
+      gap: 20px;
+    }
+
+    .profile-photo-btn {
+      width: 70px;
+      height: 70px;
+    }
+  }
+</style></head>
 <body>
 <div id="loginOverlay" class="login-overlay">
   <form id="loginForm" class="login-card">
@@ -23,7 +102,69 @@
   </form>
 </div>
 <main class="shell">
-<div class="authbar"><span id="syncStatus" class="sync-pill">Connecting…</span><span id="signedInAs" class="authnote"></span><button id="signOutBtn" type="button">Sign out</button></div>
+<div class="authbar"><span id="syncStatus" class="sync-pill">Connecting…</span><span id="signedInAs" class="authnote"></span><button id="signOutBtn" type="button">Sign out</button></div><!-- Dad + Microbia Profiles -->
+<section class="card profile-card" aria-label="Baby Steps profiles">
+
+  <div class="profile-person">
+    <button
+      id="microbiaProfileBtn"
+      class="profile-photo-btn"
+      type="button"
+      aria-label="Microbia profile picture"
+    >
+      <img
+        id="microbiaProfileImg"
+        class="profile-photo"
+        alt="Microbia profile picture"
+        hidden
+      >
+      <span
+        id="microbiaProfileFallback"
+        class="profile-fallback"
+      >M</span>
+    </button>
+
+    <span>Microbia ♡</span>
+  </div>
+
+  <div class="profile-heart">♡</div>
+
+  <div class="profile-person">
+    <button
+      id="dadProfileBtn"
+      class="profile-photo-btn"
+      type="button"
+      aria-label="Dad profile picture"
+    >
+      <img
+        id="dadProfileImg"
+        class="profile-photo"
+        alt="Dad profile picture"
+        hidden
+      >
+      <span
+        id="dadProfileFallback"
+        class="profile-fallback"
+      >D</span>
+    </button>
+
+    <span>Dad ♡</span>
+  </div>
+
+  <input
+    id="profilePhotoInput"
+    type="file"
+    accept="image/*"
+    hidden
+  >
+
+  <p
+    id="profilePhotoStatus"
+    class="center profile-status"
+    aria-live="polite"
+  ></p>
+
+</section>
 <header class="brand">
   <div><h1>Baby Steps ♡</h1><p>for you, for our little one ♡</p></div>
   <nav aria-label="Baby Steps">
@@ -150,12 +291,16 @@ const firebaseConfig = {
   appId: "1:737826285998:web:1f743af1106ec802f2c03f"
 };
 const DAD_UID = "quwZWCn1IoUGT5NwEygn6eKCxTE3";
+const MICROBIA_UID = "nInC8S5RIogVUF8UYV7NrVHe6s52";
+const CLOUDINARY_CLOUD_NAME = "lsvu6ezj";
+const CLOUDINARY_UPLOAD_PRESET = "baby_steps_uploads";
 const app=initializeApp(firebaseConfig), auth=getAuth(app), db=getFirestore(app);
 const VAPID_KEY="BORWgJuVa6KyOQYUV6SzOAUSStVhl3RZPqyR4eWLBezodpwfPKF8oWDEW9_FW4kxeVdjInmYOaPzxbbwUQWkCzk";
 let messaging=null, messagingSupported=false;
 const $=id=>document.getElementById(id);
 const todayKey=()=>new Date().toLocaleDateString('en-CA');
-let unsubMessage=null, unsubPrenatal=null, unsubPregnancy=null, unsubMilestones=null, unsubAppointments=null;
+let unsubMessage=null, unsubPrenatal=null, unsubPregnancy=null, unsubMilestones=null, unsubAppointments=null, unsubDadProfile=null, unsubMicrobiaProfile=null;
+let profileUploadTargetUid=null;
 
 $('today').textContent=new Date().toLocaleDateString(undefined,{weekday:'long',month:'long',day:'numeric'});
 
@@ -167,10 +312,12 @@ $('loginForm').addEventListener('submit', async e=>{
 $('signOutBtn').addEventListener('click',()=>signOut(auth));
 
 onAuthStateChanged(auth,user=>{
- if(unsubMessage) unsubMessage(); if(unsubPrenatal) unsubPrenatal(); if(unsubPregnancy) unsubPregnancy(); if(unsubMilestones) unsubMilestones(); if(unsubAppointments) unsubAppointments();
+ if(unsubMessage) unsubMessage(); if(unsubPrenatal) unsubPrenatal(); if(unsubPregnancy) unsubPregnancy(); if(unsubMilestones) unsubMilestones(); if(unsubAppointments) unsubAppointments(); if(unsubDadProfile) unsubDadProfile(); if(unsubMicrobiaProfile) unsubMicrobiaProfile();
  if(!user){ $('loginOverlay').hidden=false; $('signedInAs').textContent=''; $('syncStatus').textContent='Signed out'; return; }
  $('loginOverlay').hidden=true; const isDad=user.uid===DAD_UID; $('signedInAs').textContent=isDad?'Dad':'Microbia'; $('syncStatus').textContent='Synced ♡'; $('roleGreeting').innerHTML=isDad?'Hey,<em>Dad ♡</em>':'Good morning,<em>Microbia ♡</em>'; 
  document.querySelector('.dad-only').hidden=!isDad;
+ unsubDadProfile=watchProfilePhoto(DAD_UID,'dadProfileImg','dadProfileFallback');
+ unsubMicrobiaProfile=watchProfilePhoto(MICROBIA_UID,'microbiaProfileImg','microbiaProfileFallback');
  const msgRef=doc(db,'shared','dadMessage');
  unsubMessage=onSnapshot(msgRef,snap=>{ if(snap.exists()&&snap.data().text) $('dadMessage').textContent='“'+snap.data().text+'”'; });
 
@@ -186,6 +333,76 @@ onAuthStateChanged(auth,user=>{
  });
  unsubMilestones=onSnapshot(query(collection(db,'milestones'),orderBy('date','desc')),snap=>renderTimeline('milestoneList',snap,'milestone'));
  unsubAppointments=onSnapshot(query(collection(db,'appointments'),orderBy('date','asc')),snap=>renderTimeline('appointmentList',snap,'appointment'));
+});
+
+
+function watchProfilePhoto(uid,imgId,fallbackId){
+ return onSnapshot(doc(db,'profiles',uid),snap=>{
+   const imageUrl=snap.exists()?(snap.data().photoURL||''):'';
+   const img=$(imgId), fallback=$(fallbackId);
+   if(imageUrl){
+     img.src=imageUrl; img.hidden=false; fallback.hidden=true;
+   }else{
+     img.removeAttribute('src'); img.hidden=true; fallback.hidden=false;
+   }
+ },err=>console.error('Profile listener error:',err));
+}
+
+function chooseProfilePhoto(uid){
+ if(!auth.currentUser)return;
+ if(auth.currentUser.uid!==uid){
+   alert('You can only change your own profile picture ♡');
+   return;
+ }
+ profileUploadTargetUid=uid;
+ $('profilePhotoInput').value='';
+ $('profilePhotoInput').click();
+}
+
+$('dadProfileBtn').addEventListener('click',()=>chooseProfilePhoto(DAD_UID));
+$('microbiaProfileBtn').addEventListener('click',()=>chooseProfilePhoto(MICROBIA_UID));
+
+$('profilePhotoInput').addEventListener('change',async e=>{
+ const file=e.target.files?.[0];
+ if(!file||!auth.currentUser||auth.currentUser.uid!==profileUploadTargetUid)return;
+ if(!file.type.startsWith('image/')){
+   alert('Please choose an image ♡'); e.target.value=''; return;
+ }
+ if(file.size>10*1024*1024){
+   alert('That picture is too large. Choose one under 10 MB ♡'); e.target.value=''; return;
+ }
+
+ const ownButton=profileUploadTargetUid===DAD_UID?$('dadProfileBtn'):$('microbiaProfileBtn');
+ ownButton.disabled=true;
+ $('profilePhotoStatus').textContent='Uploading profile picture…';
+
+ try{
+   const formData=new FormData();
+   formData.append('file',file);
+   formData.append('upload_preset',CLOUDINARY_UPLOAD_PRESET);
+   const response=await fetch(
+     `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`,
+     {method:'POST',body:formData}
+   );
+   const result=await response.json();
+   if(!response.ok||!result.secure_url){
+     throw new Error(result.error?.message||'Cloudinary upload failed');
+   }
+   await setDoc(doc(db,'profiles',auth.currentUser.uid),{
+     photoURL:result.secure_url,
+     cloudinaryPublicId:result.public_id||'',
+     updatedAt:serverTimestamp()
+   },{merge:true});
+   $('profilePhotoStatus').textContent='Profile picture updated ♡';
+ }catch(err){
+   console.error('Profile picture upload error:',err);
+   $('profilePhotoStatus').textContent='Could not upload the picture. Try again ♡';
+   alert('Could not upload the profile picture. Please try again.');
+ }finally{
+   ownButton.disabled=false;
+   e.target.value='';
+   profileUploadTargetUid=null;
+ }
 });
 
 async function prepareMessaging(){
