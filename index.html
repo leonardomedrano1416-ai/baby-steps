@@ -296,6 +296,55 @@
   }
   .story-actions button { flex:1; }
 
+  .story-preview-video {
+    width:100%;
+    max-height:58vh;
+    border-radius:16px;
+    background:#160b0f;
+    margin-bottom:12px;
+  }
+  .story-archive-option {
+    display:flex;
+    align-items:center;
+    gap:9px;
+    margin:10px 0 2px;
+    font-weight:700;
+  }
+  .story-archive-option input { width:auto; }
+  .story-comments {
+    max-height:110px;
+    overflow-y:auto;
+    margin:8px 0;
+    font-size:.88rem;
+  }
+  .story-comment {
+    margin:5px 0;
+    padding:6px 9px;
+    border-radius:12px;
+    background:rgba(0,0,0,.32);
+  }
+  .story-comment-form {
+    display:flex;
+    gap:7px;
+    margin-top:8px;
+  }
+  .story-comment-form input {
+    flex:1;
+    min-width:0;
+    border-radius:999px;
+    padding:9px 12px;
+  }
+  .story-comment-form button {
+    border-radius:999px;
+    padding:8px 12px;
+  }
+  .story-video {
+    width:100%;
+    height:100%;
+    object-fit:contain;
+    background:#000;
+  }
+
 </style></head>
 <body>
 <div id="loginOverlay" class="login-overlay">
@@ -382,7 +431,7 @@
     <button id="addStoryBtn" class="add-story-btn" type="button">📷 Add Story</button>
   </div>
 
-  <input id="storyCameraInput" type="file" accept="image/*" capture="environment" hidden>
+  <input id="storyCameraInput" type="file" accept="image/*,video/*" capture="environment" hidden>
   <p id="storyStatus" class="center story-status" aria-live="polite"></p>
 </section>
 
@@ -390,7 +439,12 @@
   <div class="story-compose-card">
     <h2>Post your Story ♡</h2>
     <img id="storyPreview" class="story-preview" alt="Story preview">
+    <video id="storyVideoPreview" class="story-preview-video" controls playsinline hidden></video>
     <textarea id="storyCaptionInput" maxlength="180" rows="3" placeholder="Add a little caption... (optional)"></textarea>
+    <label class="story-archive-option">
+      <input id="storyArchiveInput" type="checkbox" checked>
+      <span>Save to Memories after 24 hours ♡</span>
+    </label>
     <div class="story-actions">
       <button id="cancelStoryBtn" class="secondary-btn" type="button">Retake / Cancel</button>
       <button id="postStoryBtn" type="button">Post Story ♡</button>
@@ -402,6 +456,7 @@
 <div id="storyModal" class="story-modal" hidden>
   <div class="story-viewer">
     <img id="storyViewerPhoto" class="story-photo" alt="Baby Steps Story">
+    <video id="storyViewerVideo" class="story-video" playsinline controls hidden></video>
     <div class="story-top">
       <div class="story-progress"><span id="storyProgressBar"></span></div>
       <div class="story-user">
@@ -415,6 +470,11 @@
     <div class="story-bottom">
       <p id="storyViewerCaption" class="story-caption"></p>
       <button id="storyLikeBtn" class="story-like" type="button">♡ Like</button>
+      <div id="storyComments" class="story-comments"></div>
+      <form id="storyCommentForm" class="story-comment-form">
+        <input id="storyCommentInput" maxlength="160" placeholder="Reply to Story..." aria-label="Comment on Story">
+        <button type="submit">Send ♡</button>
+      </form>
     </div>
   </div>
 </div>
@@ -560,6 +620,7 @@ let activeStories=[];
 let storyIndex=0;
 let storyFile=null;
 let storyPreviewUrl='';
+let storyMediaType='image';
 let storyTimer=null;
 let profilePhotos={};
 let viewedStoryIds=new Set();
@@ -689,7 +750,7 @@ function renderStories(snap){
  const cutoff=Date.now()-24*60*60*1000;
  activeStories=snap.docs.map(d=>({id:d.id,...d.data()})).filter(s=>{
    const ms=s.createdAt?.toMillis?.()||0;
-   return ms>=cutoff && !!s.photoURL;
+   return ms>=cutoff && !!(s.mediaURL||s.photoURL);
  });
  updateProfileStoryRings();
 }
@@ -731,13 +792,26 @@ $('addStoryBtn').addEventListener('click',()=>{
 $('storyCameraInput').addEventListener('change',e=>{
  const file=e.target.files?.[0];
  if(!file)return;
- if(!file.type.startsWith('image/')){ alert('Please take a photo ♡'); return; }
- if(file.size>12*1024*1024){ alert('That photo is too large. Please take another one ♡'); return; }
+ const isImage=file.type.startsWith('image/');
+ const isVideo=file.type.startsWith('video/');
+ if(!isImage&&!isVideo){ alert('Please take a photo or video ♡'); return; }
+ if(isImage&&file.size>12*1024*1024){ alert('That photo is too large. Please take another one ♡'); return; }
+ if(isVideo&&file.size>40*1024*1024){ alert('That video is too large. Please keep it short and under 40 MB ♡'); return; }
  storyFile=file;
+ storyMediaType=isVideo?'video':'image';
  if(storyPreviewUrl) URL.revokeObjectURL(storyPreviewUrl);
  storyPreviewUrl=URL.createObjectURL(file);
- $('storyPreview').src=storyPreviewUrl;
+ $('storyPreview').hidden=isVideo;
+ $('storyVideoPreview').hidden=!isVideo;
+ if(isVideo){
+   $('storyVideoPreview').src=storyPreviewUrl;
+   $('storyPreview').removeAttribute('src');
+ }else{
+   $('storyPreview').src=storyPreviewUrl;
+   $('storyVideoPreview').removeAttribute('src');
+ }
  $('storyCaptionInput').value='';
+ $('storyArchiveInput').checked=true;
  $('storyComposeStatus').textContent='';
  $('storyCompose').hidden=false;
 });
@@ -747,6 +821,9 @@ function closeComposer(){
  storyFile=null;
  $('storyCameraInput').value='';
  if(storyPreviewUrl){ URL.revokeObjectURL(storyPreviewUrl); storyPreviewUrl=''; }
+ $('storyVideoPreview').pause();
+ $('storyVideoPreview').removeAttribute('src');
+ $('storyPreview').removeAttribute('src');
 }
 
 $('cancelStoryBtn').addEventListener('click',closeComposer);
@@ -760,7 +837,7 @@ $('postStoryBtn').addEventListener('click',async()=>{
    const formData=new FormData();
    formData.append('file',storyFile);
    formData.append('upload_preset',CLOUDINARY_UPLOAD_PRESET);
-   const response=await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`,{
+   const response=await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/auto/upload`,{
      method:'POST',body:formData
    });
    const result=await response.json();
@@ -768,11 +845,15 @@ $('postStoryBtn').addEventListener('click',async()=>{
 
    await addDoc(collection(db,'stories'),{
      photoURL:result.secure_url,
+     mediaURL:result.secure_url,
+     mediaType:storyMediaType,
      cloudinaryPublicId:result.public_id||'',
      caption:$('storyCaptionInput').value.trim(),
      createdBy:auth.currentUser.uid,
      createdAt:serverTimestamp(),
-     likes:[]
+     saveToMemories:$('storyArchiveInput').checked,
+     likes:[],
+     comments:[]
    });
    $('storyStatus').textContent='Story posted ♡';
    closeComposer();
@@ -794,11 +875,24 @@ function showStory(){
  const s=activeStories[storyIndex];
  if(!s){ closeStory(); return; }
  markStoryViewed(s);
- $('storyViewerPhoto').src=s.photoURL;
+ const mediaUrl=s.mediaURL||s.photoURL;
+ const isVideo=s.mediaType==='video';
+ $('storyViewerPhoto').hidden=isVideo;
+ $('storyViewerVideo').hidden=!isVideo;
+ $('storyViewerVideo').pause();
+ if(isVideo){
+   $('storyViewerVideo').src=mediaUrl;
+   $('storyViewerPhoto').removeAttribute('src');
+   $('storyViewerVideo').play().catch(()=>{});
+ }else{
+   $('storyViewerPhoto').src=mediaUrl;
+   $('storyViewerVideo').removeAttribute('src');
+ }
  $('storyViewerCaption').textContent=s.caption||'';
  $('storyViewerName').textContent=roleName(s.createdBy)+' ♡';
- const avatar=profilePhotos[s.createdBy]||s.photoURL;
+ const avatar=profilePhotos[s.createdBy]||mediaUrl;
  $('storyViewerAvatar').src=avatar;
+ renderStoryComments(s);
  const liked=(s.likes||[]).includes(auth.currentUser?.uid);
  $('storyLikeBtn').textContent=liked?'♥ Liked':'♡ Like';
  $('storyLikeBtn').classList.toggle('liked',liked);
@@ -807,11 +901,25 @@ function showStory(){
  requestAnimationFrame(()=>requestAnimationFrame(()=>{
    bar.style.transition='width 7s linear'; bar.style.width='100%';
  }));
- storyTimer=setTimeout(()=>nextStory(),7000);
+ if(isVideo){
+   bar.style.transition='none'; bar.style.width='0%';
+   const video=$('storyViewerVideo');
+   video.onloadedmetadata=()=>{
+     const duration=Math.max(1,Math.min(video.duration||15,60));
+     bar.style.transition='none'; bar.style.width='0%';
+     requestAnimationFrame(()=>requestAnimationFrame(()=>{
+       bar.style.transition=`width ${duration}s linear`; bar.style.width='100%';
+     }));
+   };
+   video.onended=()=>nextStory();
+ }else{
+   storyTimer=setTimeout(()=>nextStory(),7000);
+ }
 }
 
 function closeStory(){
  clearTimeout(storyTimer);
+ $('storyViewerVideo').pause();
  $('storyModal').hidden=true;
 }
 
@@ -847,6 +955,38 @@ $('storyLikeBtn').addEventListener('click',async()=>{
  }
 });
 
+
+
+function renderStoryComments(story){
+ const comments=story.comments||[];
+ $('storyComments').innerHTML=comments.length
+   ? comments.map(c=>`<div class="story-comment"><b>${escapeHTML(roleName(c.uid))}:</b> ${escapeHTML(c.text||'')}</div>`).join('')
+   : '';
+ $('storyCommentInput').value='';
+}
+
+$('storyCommentForm').addEventListener('submit',async e=>{
+ e.preventDefault();
+ if(!auth.currentUser||!activeStories[storyIndex])return;
+ const text=$('storyCommentInput').value.trim();
+ if(!text)return;
+ clearTimeout(storyTimer);
+ const s=activeStories[storyIndex];
+ const comment={
+   id:(crypto.randomUUID?crypto.randomUUID():Date.now()+'-'+Math.random()),
+   uid:auth.currentUser.uid,
+   text:text.slice(0,160),
+   createdAt:new Date().toISOString()
+ };
+ try{
+   await updateDoc(doc(db,'stories',s.id),{comments:arrayUnion(comment)});
+   s.comments=[...(s.comments||[]),comment];
+   renderStoryComments(s);
+ }catch(err){
+   console.error('Story comment error:',err);
+   alert('Could not send the comment. Try again ♡');
+ }
+});
 
 async function prepareMessaging(){
  const btn=$('enableNotificationsBtn');
