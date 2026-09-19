@@ -862,6 +862,14 @@ onAuthStateChanged(auth,user=>{
    viewedStoryIds=new Set(snap.exists()?(snap.data().viewedStoryIds||[]):[]);
    updateProfileStoryRings();
  });
+ unsubChat=onSnapshot(
+   query(collection(db,'chatMessages'),orderBy('createdAt','asc')),
+   snap=>renderChat(snap),
+   err=>{
+     console.error('Chat listener error:',err);
+     $('chatStatus').textContent='Could not load messages ♡';
+   }
+ );
  const msgRef=doc(db,'shared','dadMessage');
  unsubMessage=onSnapshot(msgRef,snap=>{ if(snap.exists()&&snap.data().text) $('dadMessage').textContent='“'+snap.data().text+'”'; });
 
