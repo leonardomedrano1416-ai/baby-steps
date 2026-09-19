@@ -499,6 +499,22 @@
     }
   }
 
+
+  /* Us chat heart reactions */
+  .chat-bubble-wrap { position:relative; }
+  .chat-bubble { cursor:pointer; -webkit-tap-highlight-color:transparent; }
+  .chat-reaction {
+    display:inline-flex; align-items:center; justify-content:center;
+    min-width:27px; height:22px; padding:0 6px;
+    margin-top:3px; border-radius:999px;
+    background:#fff; border:1px solid #ead2d9;
+    box-shadow:0 1px 5px rgba(74,29,39,.10);
+    font-size:13px; line-height:1;
+  }
+  .chat-row.mine .chat-reaction { align-self:flex-end; }
+  .chat-row.theirs .chat-reaction { align-self:flex-start; }
+  .chat-reaction.mine-reaction { border-color:#b45b76; background:#fff4f7; }
+
 </style></head>
 <body>
 <div id="loginOverlay" class="login-overlay">
@@ -1262,13 +1278,48 @@ function renderChat(snap){
     const m=d.data();
     const mine=m.senderId===auth.currentUser?.uid;
     const name=roleName(m.senderId);
+    const hearts=Array.isArray(m.heartReactions)?m.heartReactions:[];
+    const iHearted=hearts.includes(auth.currentUser?.uid);
+    const reaction=hearts.length
+      ? `<button type="button" class="chat-reaction ${iHearted?'mine-reaction':''}" data-reaction-id="${d.id}" aria-label="Heart reaction">♡${hearts.length>1?' '+hearts.length:''}</button>`
+      : '';
     return `<div class="chat-row ${mine?'mine':'theirs'}">
       <div class="chat-meta">${escapeHTML(name)}${chatTime(m.createdAt)?' · '+escapeHTML(chatTime(m.createdAt)):''}</div>
-      <div class="chat-bubble">${escapeHTML(m.text||'')}</div>
+      <div class="chat-bubble-wrap">
+        <div class="chat-bubble" data-message-id="${d.id}" title="Tap to heart">${escapeHTML(m.text||'')}</div>
+      </div>
+      ${reaction}
     </div>`;
   }).join('');
   requestAnimationFrame(()=>{ list.scrollTop=list.scrollHeight; });
 }
+
+async function toggleChatHeart(messageId){
+  if(!auth.currentUser || !messageId)return;
+  const ref=doc(db,'chatMessages',messageId);
+  try{
+    const snap=await getDoc(ref);
+    if(!snap.exists())return;
+    const current=Array.isArray(snap.data().heartReactions)?snap.data().heartReactions:[];
+    const uid=auth.currentUser.uid;
+    const next=current.includes(uid)?current.filter(x=>x!==uid):[...current,uid];
+    await updateDoc(ref,{heartReactions:next});
+  }catch(err){
+    console.error('Chat reaction error:',err);
+    $('chatStatus').textContent='Could not update reaction ♡';
+    setTimeout(()=>{ if($('chatStatus').textContent==='Could not update reaction ♡') $('chatStatus').textContent=''; },2200);
+  }
+}
+
+$('chatList').addEventListener('click',e=>{
+  const reaction=e.target.closest('[data-reaction-id]');
+  if(reaction){
+    toggleChatHeart(reaction.dataset.reactionId);
+    return;
+  }
+  const bubble=e.target.closest('[data-message-id]');
+  if(bubble) toggleChatHeart(bubble.dataset.messageId);
+});
 
 $('chatForm').addEventListener('submit',async e=>{
   e.preventDefault();
