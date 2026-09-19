@@ -579,6 +579,26 @@
     overflow: visible !important;
   }
 
+
+  /* Us chat photo/video sharing */
+  .chat-form {
+    grid-template-columns:auto minmax(0,1fr) auto !important;
+  }
+  .chat-media-btn {
+    width:48px !important; height:48px !important; min-width:48px !important;
+    padding:0 !important; margin:0 !important; border-radius:50% !important;
+    font-size:27px !important; line-height:46px !important;
+    align-self:end !important;
+  }
+  .chat-media {
+    display:block; max-width:min(240px,68vw); max-height:320px;
+    border-radius:16px; object-fit:cover; background:#f3e4e8;
+  }
+  video.chat-media { width:min(240px,68vw); }
+  .chat-media-wrap { overflow:hidden; border-radius:16px; }
+  .chat-row.mine .chat-media-wrap { border-bottom-right-radius:5px; }
+  .chat-row.theirs .chat-media-wrap { border-bottom-left-radius:5px; }
+
 </style></head>
 <body>
 <div id="loginOverlay" class="login-overlay">
@@ -739,6 +759,8 @@
       <p class="chat-empty">Your conversation starts here ♡</p>
     </div>
     <form id="chatForm" class="chat-form">
+      <button id="chatMediaBtn" class="chat-media-btn" type="button" aria-label="Add photo or video">＋</button>
+      <input id="chatMediaInput" type="file" accept="image/*,video/*" hidden>
       <textarea id="chatInput" rows="1" maxlength="1000" placeholder="Write a message..." aria-label="Write a message"></textarea>
       <button id="chatSendBtn" class="chat-send" type="submit">Send ♡</button>
     </form>
@@ -1350,7 +1372,12 @@ function renderChat(snap){
     return `<div class="chat-row ${mine?'mine':'theirs'}">
       <div class="chat-meta">${escapeHTML(name)}${chatTime(m.createdAt)?' · '+escapeHTML(chatTime(m.createdAt)):''}</div>
       <div class="chat-bubble-wrap">
-        <div class="chat-bubble" data-message-id="${d.id}" title="Double-tap to heart">${escapeHTML(m.text||'')}</div>
+        ${m.mediaURL ? `<div class="chat-media-wrap" data-message-id="${d.id}">
+          ${m.mediaType==='video'
+            ? `<video class="chat-media" src="${escapeHTML(m.mediaURL)}" controls playsinline preload="metadata"></video>`
+            : `<img class="chat-media" src="${escapeHTML(m.mediaURL)}" alt="Shared photo" loading="lazy">`}
+        </div>` : ''}
+        ${m.text ? `<div class="chat-bubble" data-message-id="${d.id}" title="Double-tap to heart">${escapeHTML(m.text)}</div>` : ''}
         ${reaction}
       </div>
     </div>`;
@@ -1383,7 +1410,7 @@ $('chatList').addEventListener('click',e=>{
 let lastChatTap={id:null,time:0};
 $('chatList').addEventListener('pointerup',e=>{
   const bubble=e.target.closest('[data-message-id]');
-  if(!bubble)return;
+  if(!bubble || e.target.closest('video[controls]'))return;
   const now=Date.now();
   const id=bubble.dataset.messageId;
   if(lastChatTap.id===id && now-lastChatTap.time<420){
@@ -1391,6 +1418,55 @@ $('chatList').addEventListener('pointerup',e=>{
     toggleChatHeart(id);
   }else{
     lastChatTap={id,time:now};
+  }
+});
+
+
+$('chatMediaBtn').addEventListener('click',()=>$('chatMediaInput').click());
+
+$('chatMediaInput').addEventListener('change',async e=>{
+  const file=e.target.files?.[0];
+  e.target.value='';
+  if(!file || !auth.currentUser)return;
+
+  const isVideo=file.type.startsWith('video/');
+  const isImage=file.type.startsWith('image/');
+  if(!isVideo && !isImage){
+    $('chatStatus').textContent='Please choose a photo or video ♡';
+    return;
+  }
+  const maxBytes=isVideo ? 40*1024*1024 : 12*1024*1024;
+  if(file.size>maxBytes){
+    $('chatStatus').textContent=isVideo?'Video must be under 40 MB ♡':'Photo must be under 12 MB ♡';
+    return;
+  }
+
+  const btn=$('chatMediaBtn');
+  btn.disabled=true;
+  $('chatStatus').textContent=isVideo?'Uploading video…':'Uploading photo…';
+  try{
+    const form=new FormData();
+    form.append('file',file);
+    form.append('upload_preset',CLOUDINARY_UPLOAD_PRESET);
+    const response=await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/auto/upload`,{
+      method:'POST',body:form
+    });
+    if(!response.ok) throw new Error('Cloudinary upload failed');
+    const result=await response.json();
+    await addDoc(collection(db,'chatMessages'),{
+      text:'',
+      mediaURL:result.secure_url,
+      mediaType:isVideo?'video':'image',
+      cloudinaryPublicId:result.public_id||'',
+      senderId:auth.currentUser.uid,
+      createdAt:serverTimestamp()
+    });
+    $('chatStatus').textContent='';
+  }catch(err){
+    console.error('Chat media upload error:',err);
+    $('chatStatus').textContent='Could not send media. Try again ♡';
+  }finally{
+    btn.disabled=false;
   }
 });
 
