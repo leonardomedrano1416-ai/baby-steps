@@ -515,6 +515,25 @@
   .chat-row.theirs .chat-reaction { align-self:flex-start; }
   .chat-reaction.mine-reaction { border-color:#b45b76; background:#fff4f7; }
 
+
+  /* Improved chat reactions: double-tap + attached red heart */
+  .chat-bubble-wrap { position:relative; padding-bottom:7px; }
+  .chat-reaction {
+    position:absolute !important;
+    bottom:-7px !important;
+    z-index:2;
+    width:auto !important; min-width:28px !important; height:24px !important;
+    margin:0 !important; padding:1px 6px !important;
+    border-radius:999px !important;
+    background:#fff !important;
+    border:1px solid #ead2d9 !important;
+    font-size:16px !important;
+    line-height:20px !important;
+    box-shadow:0 1px 5px rgba(74,29,39,.14) !important;
+  }
+  .chat-row.mine .chat-reaction { right:5px; left:auto; }
+  .chat-row.theirs .chat-reaction { left:5px; right:auto; }
+
 </style></head>
 <body>
 <div id="loginOverlay" class="login-overlay">
@@ -1281,14 +1300,14 @@ function renderChat(snap){
     const hearts=Array.isArray(m.heartReactions)?m.heartReactions:[];
     const iHearted=hearts.includes(auth.currentUser?.uid);
     const reaction=hearts.length
-      ? `<button type="button" class="chat-reaction ${iHearted?'mine-reaction':''}" data-reaction-id="${d.id}" aria-label="Heart reaction">♡${hearts.length>1?' '+hearts.length:''}</button>`
+      ? `<button type="button" class="chat-reaction ${iHearted?'mine-reaction':''}" data-reaction-id="${d.id}" aria-label="Heart reaction">❤️${hearts.length>1?' '+hearts.length:''}</button>`
       : '';
     return `<div class="chat-row ${mine?'mine':'theirs'}">
       <div class="chat-meta">${escapeHTML(name)}${chatTime(m.createdAt)?' · '+escapeHTML(chatTime(m.createdAt)):''}</div>
       <div class="chat-bubble-wrap">
-        <div class="chat-bubble" data-message-id="${d.id}" title="Tap to heart">${escapeHTML(m.text||'')}</div>
+        <div class="chat-bubble" data-message-id="${d.id}" title="Double-tap to heart">${escapeHTML(m.text||'')}</div>
+        ${reaction}
       </div>
-      ${reaction}
     </div>`;
   }).join('');
   requestAnimationFrame(()=>{ list.scrollTop=list.scrollHeight; });
@@ -1313,12 +1332,21 @@ async function toggleChatHeart(messageId){
 
 $('chatList').addEventListener('click',e=>{
   const reaction=e.target.closest('[data-reaction-id]');
-  if(reaction){
-    toggleChatHeart(reaction.dataset.reactionId);
-    return;
-  }
+  if(reaction) toggleChatHeart(reaction.dataset.reactionId);
+});
+
+let lastChatTap={id:null,time:0};
+$('chatList').addEventListener('pointerup',e=>{
   const bubble=e.target.closest('[data-message-id]');
-  if(bubble) toggleChatHeart(bubble.dataset.messageId);
+  if(!bubble)return;
+  const now=Date.now();
+  const id=bubble.dataset.messageId;
+  if(lastChatTap.id===id && now-lastChatTap.time<420){
+    lastChatTap={id:null,time:0};
+    toggleChatHeart(id);
+  }else{
+    lastChatTap={id,time:now};
+  }
 });
 
 $('chatForm').addEventListener('submit',async e=>{
