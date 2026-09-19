@@ -534,6 +534,24 @@
   .chat-row.mine .chat-reaction { right:5px; left:auto; }
   .chat-row.theirs .chat-reaction { left:5px; right:auto; }
 
+
+  /* Reaction placement: lower-right corner without covering message text */
+  .chat-bubble-wrap {
+    position: relative;
+    padding-bottom: 12px !important;
+  }
+  .chat-reaction {
+    bottom: -3px !important;
+    left: auto !important;
+    right: -7px !important;
+    transform: none !important;
+  }
+  .chat-row.mine .chat-reaction,
+  .chat-row.theirs .chat-reaction {
+    left: auto !important;
+    right: -7px !important;
+  }
+
 </style></head>
 <body>
 <div id="loginOverlay" class="login-overlay">
