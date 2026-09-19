@@ -74,6 +74,10 @@
     text-align: center;
   }
 
+  .profile-photo-btn.story-unseen { border-color:#c94f78; box-shadow:0 0 0 3px #f3bfd0,0 0 14px rgba(201,79,120,.55); }
+  .profile-photo-btn.story-seen { border-color:#d8bfc7; box-shadow:0 0 0 2px #eee3e7; }
+  .profile-photo-btn.story-none { border-color:#8f3f59; box-shadow:none; }
+
   .profile-photo-btn:disabled {
     opacity: 0.65;
     cursor: not-allowed;
@@ -378,10 +382,6 @@
     <button id="addStoryBtn" class="add-story-btn" type="button">📷 Add Story</button>
   </div>
 
-  <div id="storyRow" class="story-row">
-    <p class="empty-state">No active stories yet ♡</p>
-  </div>
-
   <input id="storyCameraInput" type="file" accept="image/*" capture="environment" hidden>
   <p id="storyStatus" class="center story-status" aria-live="polite"></p>
 </section>
@@ -562,6 +562,8 @@ let storyFile=null;
 let storyPreviewUrl='';
 let storyTimer=null;
 let profilePhotos={};
+let viewedStoryIds=new Set();
+let unsubStoryViews=null;
 
 $('today').textContent=new Date().toLocaleDateString(undefined,{weekday:'long',month:'long',day:'numeric'});
 
@@ -573,13 +575,17 @@ $('loginForm').addEventListener('submit', async e=>{
 $('signOutBtn').addEventListener('click',()=>signOut(auth));
 
 onAuthStateChanged(auth,user=>{
- if(unsubMessage) unsubMessage(); if(unsubPrenatal) unsubPrenatal(); if(unsubPregnancy) unsubPregnancy(); if(unsubMilestones) unsubMilestones(); if(unsubAppointments) unsubAppointments(); if(unsubDadProfile) unsubDadProfile(); if(unsubMicrobiaProfile) unsubMicrobiaProfile(); if(unsubStories) unsubStories();
+ if(unsubMessage) unsubMessage(); if(unsubPrenatal) unsubPrenatal(); if(unsubPregnancy) unsubPregnancy(); if(unsubMilestones) unsubMilestones(); if(unsubAppointments) unsubAppointments(); if(unsubDadProfile) unsubDadProfile(); if(unsubMicrobiaProfile) unsubMicrobiaProfile(); if(unsubStories) unsubStories(); if(unsubStoryViews) unsubStoryViews();
  if(!user){ $('loginOverlay').hidden=false; $('signedInAs').textContent=''; $('syncStatus').textContent='Signed out'; return; }
  $('loginOverlay').hidden=true; const isDad=user.uid===DAD_UID; $('signedInAs').textContent=isDad?'Dad':'Microbia'; $('syncStatus').textContent='Synced ♡'; $('roleGreeting').innerHTML=isDad?'Hey,<em>Dad ♡</em>':'Good morning,<em>Microbia ♡</em>'; 
  document.querySelector('.dad-only').hidden=!isDad;
  unsubDadProfile=watchProfilePhoto(DAD_UID,'dadProfileImg','dadProfileFallback');
  unsubMicrobiaProfile=watchProfilePhoto(MICROBIA_UID,'microbiaProfileImg','microbiaProfileFallback');
  unsubStories=onSnapshot(query(collection(db,'stories'),orderBy('createdAt','asc')),snap=>renderStories(snap));
+ unsubStoryViews=onSnapshot(doc(db,'storyViews',user.uid),snap=>{
+   viewedStoryIds=new Set(snap.exists()?(snap.data().viewedStoryIds||[]):[]);
+   updateProfileStoryRings();
+ });
  const msgRef=doc(db,'shared','dadMessage');
  unsubMessage=onSnapshot(msgRef,snap=>{ if(snap.exists()&&snap.data().text) $('dadMessage').textContent='“'+snap.data().text+'”'; });
 
@@ -621,8 +627,17 @@ function chooseProfilePhoto(uid){
  $('profilePhotoInput').click();
 }
 
-$('dadProfileBtn').addEventListener('click',()=>chooseProfilePhoto(DAD_UID));
-$('microbiaProfileBtn').addEventListener('click',()=>chooseProfilePhoto(MICROBIA_UID));
+function handleProfileTap(uid){
+ const stories=activeStories.filter(s=>s.createdBy===uid);
+ if(stories.length){
+   const firstUnseen=stories.find(s=>!viewedStoryIds.has(s.id))||stories[0];
+   openStory(activeStories.findIndex(s=>s.id===firstUnseen.id));
+   return;
+ }
+ chooseProfilePhoto(uid);
+}
+$('dadProfileBtn').addEventListener('click',()=>handleProfileTap(DAD_UID));
+$('microbiaProfileBtn').addEventListener('click',()=>handleProfileTap(MICROBIA_UID));
 
 $('profilePhotoInput').addEventListener('change',async e=>{
  const file=e.target.files?.[0];
@@ -676,26 +691,36 @@ function renderStories(snap){
    const ms=s.createdAt?.toMillis?.()||0;
    return ms>=cutoff && !!s.photoURL;
  });
- const row=$('storyRow');
- if(!activeStories.length){
-   row.innerHTML='<p class="empty-state">No active stories yet. Take one together ♡</p>';
-   return;
- }
- row.innerHTML=activeStories.map((s,i)=>{
-   const uid=s.createdBy||'';
-   const avatar=profilePhotos[uid]||s.photoURL;
-   return `<button class="story-bubble" type="button" data-story-index="${i}">
-     <span class="story-ring"><img src="${escapeHTML(avatar)}" alt="${escapeHTML(roleName(uid))} Story"></span>
-     <span class="story-label">${escapeHTML(roleName(uid))}</span>
-   </button>`;
- }).join('');
+ updateProfileStoryRings();
 }
 
-$('storyRow').addEventListener('click',e=>{
- const btn=e.target.closest('[data-story-index]');
- if(!btn)return;
- openStory(Number(btn.dataset.storyIndex));
-});
+function updateProfileStoryRings(){
+ [DAD_UID,MICROBIA_UID].forEach(uid=>{
+   const btn=uid===DAD_UID?$('dadProfileBtn'):$('microbiaProfileBtn');
+   const stories=activeStories.filter(s=>s.createdBy===uid);
+   btn.classList.remove('story-unseen','story-seen','story-none');
+   if(!stories.length){
+     btn.classList.add('story-none');
+     btn.setAttribute('aria-label',`${roleName(uid)} profile picture`);
+     return;
+   }
+   const hasUnseen=stories.some(s=>!viewedStoryIds.has(s.id));
+   btn.classList.add(hasUnseen?'story-unseen':'story-seen');
+   btn.setAttribute('aria-label',`${roleName(uid)} Story${hasUnseen?' — new':' — viewed'}`);
+ });
+}
+
+async function markStoryViewed(story){
+ if(!auth.currentUser||!story||viewedStoryIds.has(story.id))return;
+ viewedStoryIds.add(story.id);
+ updateProfileStoryRings();
+ try{
+   await setDoc(doc(db,'storyViews',auth.currentUser.uid),{
+     viewedStoryIds:arrayUnion(story.id),
+     updatedAt:serverTimestamp()
+   },{merge:true});
+ }catch(err){ console.error('Could not save Story view:',err); }
+}
 
 $('addStoryBtn').addEventListener('click',()=>{
  if(!auth.currentUser)return;
@@ -768,6 +793,7 @@ function showStory(){
  clearTimeout(storyTimer);
  const s=activeStories[storyIndex];
  if(!s){ closeStory(); return; }
+ markStoryViewed(s);
  $('storyViewerPhoto').src=s.photoURL;
  $('storyViewerCaption').textContent=s.caption||'';
  $('storyViewerName').textContent=roleName(s.createdBy)+' ♡';
