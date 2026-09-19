@@ -629,6 +629,26 @@
   .home-create-menu button b { font-size:.94rem; }
   .home-create-menu button small { font-size:.74rem; opacity:.66; font-weight:400; }
 
+
+  /* Home Create button — upper-right header placement */
+  .home-create-wrap {
+    position: fixed !important;
+    top: calc(env(safe-area-inset-top) + 108px) !important;
+    right: 26px !important;
+    z-index: 80 !important;
+  }
+  .home-create-btn {
+    width: 42px !important;
+    height: 42px !important;
+  }
+  .home-create-menu {
+    top: 50px !important;
+    right: 0 !important;
+  }
+  body:not(.home-tab-active) .home-create-wrap {
+    display: none !important;
+  }
+
 </style></head>
 <body>
 <div id="loginOverlay" class="login-overlay">
@@ -1642,3 +1662,12 @@ $('dueDateForm').addEventListener('submit',async e=>{
 
 </script>
 </body></html>
+
+<script>
+document.body.classList.add('home-tab-active');
+document.querySelectorAll('[data-page-target]').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    document.body.classList.toggle('home-tab-active',btn.dataset.pageTarget==='home');
+  });
+});
+</script>
