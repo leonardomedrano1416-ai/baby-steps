@@ -89,6 +89,209 @@
       height: 70px;
     }
   }
+
+  /* Baby Steps Stories */
+  .stories-card {
+    margin-bottom: 18px;
+    padding: 16px 18px;
+  }
+  .stories-head {
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    margin-bottom:12px;
+  }
+  .stories-head h2 { margin:0; font-size:1.15rem; }
+  .story-row {
+    display:flex;
+    gap:16px;
+    overflow-x:auto;
+    padding:4px 2px 8px;
+    scrollbar-width:none;
+  }
+  .story-row::-webkit-scrollbar { display:none; }
+  .story-bubble {
+    min-width:76px;
+    border:0;
+    background:transparent;
+    padding:0;
+    cursor:pointer;
+    text-align:center;
+  }
+  .story-ring {
+    width:70px;
+    height:70px;
+    margin:auto;
+    border-radius:50%;
+    padding:3px;
+    border:3px solid #8f3f59;
+    background:#fff;
+    display:grid;
+    place-items:center;
+    overflow:hidden;
+  }
+  .story-ring img {
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    border-radius:50%;
+  }
+  .story-ring.empty { border-color:#d8a8b7; }
+  .story-label {
+    display:block;
+    margin-top:6px;
+    font-size:.82rem;
+    font-weight:700;
+  }
+  .add-story-btn {
+    border-radius:999px;
+    padding:10px 14px;
+    white-space:nowrap;
+  }
+  .story-status { margin:8px 0 0; }
+  .story-modal {
+    position:fixed;
+    inset:0;
+    z-index:9999;
+    background:rgba(24,10,15,.96);
+    display:grid;
+    place-items:center;
+    padding:env(safe-area-inset-top) 12px env(safe-area-inset-bottom);
+  }
+  .story-modal[hidden] { display:none; }
+  .story-viewer {
+    position:relative;
+    width:min(100%,480px);
+    height:min(86vh,760px);
+    border-radius:24px;
+    overflow:hidden;
+    background:#160b0f;
+    color:white;
+    box-shadow:0 20px 60px rgba(0,0,0,.45);
+  }
+  .story-photo {
+    width:100%;
+    height:100%;
+    object-fit:contain;
+    background:#000;
+  }
+  .story-top {
+    position:absolute;
+    top:0;
+    left:0;
+    right:0;
+    z-index:3;
+    padding:12px 14px 18px;
+    background:linear-gradient(rgba(0,0,0,.72),transparent);
+  }
+  .story-progress {
+    height:3px;
+    border-radius:999px;
+    background:rgba(255,255,255,.35);
+    overflow:hidden;
+    margin-bottom:10px;
+  }
+  .story-progress > span {
+    display:block;
+    height:100%;
+    width:0;
+    background:white;
+  }
+  .story-user {
+    display:flex;
+    align-items:center;
+    gap:9px;
+    font-weight:800;
+  }
+  .story-user img {
+    width:34px;
+    height:34px;
+    border-radius:50%;
+    object-fit:cover;
+    border:1px solid rgba(255,255,255,.8);
+  }
+  .story-close {
+    position:absolute;
+    right:12px;
+    top:22px;
+    z-index:5;
+    border:0;
+    background:rgba(0,0,0,.28);
+    color:white;
+    width:38px;
+    height:38px;
+    border-radius:50%;
+    font-size:24px;
+    padding:0;
+  }
+  .story-nav {
+    position:absolute;
+    top:70px;
+    bottom:90px;
+    width:38%;
+    z-index:2;
+    border:0;
+    background:transparent;
+  }
+  .story-prev { left:0; }
+  .story-next { right:0; }
+  .story-bottom {
+    position:absolute;
+    left:0;
+    right:0;
+    bottom:0;
+    z-index:3;
+    padding:34px 16px 16px;
+    background:linear-gradient(transparent,rgba(0,0,0,.78));
+  }
+  .story-caption {
+    margin:0 0 10px;
+    text-shadow:0 1px 3px #000;
+  }
+  .story-like {
+    border:1px solid rgba(255,255,255,.75);
+    background:rgba(0,0,0,.28);
+    color:white;
+    border-radius:999px;
+    padding:9px 14px;
+  }
+  .story-like.liked { background:rgba(143,63,89,.78); }
+  .story-compose {
+    position:fixed;
+    inset:0;
+    z-index:10000;
+    background:rgba(24,10,15,.96);
+    display:grid;
+    place-items:center;
+    padding:18px;
+  }
+  .story-compose[hidden] { display:none; }
+  .story-compose-card {
+    width:min(100%,460px);
+    background:#fff7f9;
+    border-radius:22px;
+    padding:16px;
+  }
+  .story-preview {
+    width:100%;
+    max-height:58vh;
+    object-fit:contain;
+    border-radius:16px;
+    background:#160b0f;
+    margin-bottom:12px;
+  }
+  .story-compose-card textarea {
+    width:100%;
+    box-sizing:border-box;
+  }
+  .story-actions {
+    display:flex;
+    gap:10px;
+    margin-top:10px;
+  }
+  .story-actions button { flex:1; }
+
 </style></head>
 <body>
 <div id="loginOverlay" class="login-overlay">
@@ -165,6 +368,57 @@
   ></p>
 
 </section>
+
+<section class="card stories-card" aria-label="Baby Steps stories">
+  <div class="stories-head">
+    <div>
+      <b>OUR STORIES ♡</b>
+      <h2>Little moments, right now</h2>
+    </div>
+    <button id="addStoryBtn" class="add-story-btn" type="button">📷 Add Story</button>
+  </div>
+
+  <div id="storyRow" class="story-row">
+    <p class="empty-state">No active stories yet ♡</p>
+  </div>
+
+  <input id="storyCameraInput" type="file" accept="image/*" capture="environment" hidden>
+  <p id="storyStatus" class="center story-status" aria-live="polite"></p>
+</section>
+
+<div id="storyCompose" class="story-compose" hidden>
+  <div class="story-compose-card">
+    <h2>Post your Story ♡</h2>
+    <img id="storyPreview" class="story-preview" alt="Story preview">
+    <textarea id="storyCaptionInput" maxlength="180" rows="3" placeholder="Add a little caption... (optional)"></textarea>
+    <div class="story-actions">
+      <button id="cancelStoryBtn" class="secondary-btn" type="button">Retake / Cancel</button>
+      <button id="postStoryBtn" type="button">Post Story ♡</button>
+    </div>
+    <p id="storyComposeStatus" class="center" aria-live="polite"></p>
+  </div>
+</div>
+
+<div id="storyModal" class="story-modal" hidden>
+  <div class="story-viewer">
+    <img id="storyViewerPhoto" class="story-photo" alt="Baby Steps Story">
+    <div class="story-top">
+      <div class="story-progress"><span id="storyProgressBar"></span></div>
+      <div class="story-user">
+        <img id="storyViewerAvatar" alt="">
+        <span id="storyViewerName">—</span>
+      </div>
+    </div>
+    <button id="closeStoryBtn" class="story-close" type="button" aria-label="Close Story">×</button>
+    <button id="prevStoryBtn" class="story-nav story-prev" type="button" aria-label="Previous Story"></button>
+    <button id="nextStoryBtn" class="story-nav story-next" type="button" aria-label="Next Story"></button>
+    <div class="story-bottom">
+      <p id="storyViewerCaption" class="story-caption"></p>
+      <button id="storyLikeBtn" class="story-like" type="button">♡ Like</button>
+    </div>
+  </div>
+</div>
+
 <header class="brand">
   <div><h1>Baby Steps ♡</h1><p>for you, for our little one ♡</p></div>
   <nav aria-label="Baby Steps">
@@ -279,7 +533,7 @@
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-app.js";
 import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-auth.js";
-import { getFirestore, doc, setDoc, onSnapshot, serverTimestamp, collection, addDoc, query, orderBy, deleteDoc } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-firestore.js";
+import { getFirestore, doc, setDoc, onSnapshot, serverTimestamp, collection, addDoc, query, orderBy, deleteDoc, updateDoc, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-firestore.js";
 import { getMessaging, getToken, onMessage, isSupported } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-messaging.js";
 
 const firebaseConfig = {
@@ -301,6 +555,13 @@ const $=id=>document.getElementById(id);
 const todayKey=()=>new Date().toLocaleDateString('en-CA');
 let unsubMessage=null, unsubPrenatal=null, unsubPregnancy=null, unsubMilestones=null, unsubAppointments=null, unsubDadProfile=null, unsubMicrobiaProfile=null;
 let profileUploadTargetUid=null;
+let unsubStories=null;
+let activeStories=[];
+let storyIndex=0;
+let storyFile=null;
+let storyPreviewUrl='';
+let storyTimer=null;
+let profilePhotos={};
 
 $('today').textContent=new Date().toLocaleDateString(undefined,{weekday:'long',month:'long',day:'numeric'});
 
@@ -312,12 +573,13 @@ $('loginForm').addEventListener('submit', async e=>{
 $('signOutBtn').addEventListener('click',()=>signOut(auth));
 
 onAuthStateChanged(auth,user=>{
- if(unsubMessage) unsubMessage(); if(unsubPrenatal) unsubPrenatal(); if(unsubPregnancy) unsubPregnancy(); if(unsubMilestones) unsubMilestones(); if(unsubAppointments) unsubAppointments(); if(unsubDadProfile) unsubDadProfile(); if(unsubMicrobiaProfile) unsubMicrobiaProfile();
+ if(unsubMessage) unsubMessage(); if(unsubPrenatal) unsubPrenatal(); if(unsubPregnancy) unsubPregnancy(); if(unsubMilestones) unsubMilestones(); if(unsubAppointments) unsubAppointments(); if(unsubDadProfile) unsubDadProfile(); if(unsubMicrobiaProfile) unsubMicrobiaProfile(); if(unsubStories) unsubStories();
  if(!user){ $('loginOverlay').hidden=false; $('signedInAs').textContent=''; $('syncStatus').textContent='Signed out'; return; }
  $('loginOverlay').hidden=true; const isDad=user.uid===DAD_UID; $('signedInAs').textContent=isDad?'Dad':'Microbia'; $('syncStatus').textContent='Synced ♡'; $('roleGreeting').innerHTML=isDad?'Hey,<em>Dad ♡</em>':'Good morning,<em>Microbia ♡</em>'; 
  document.querySelector('.dad-only').hidden=!isDad;
  unsubDadProfile=watchProfilePhoto(DAD_UID,'dadProfileImg','dadProfileFallback');
  unsubMicrobiaProfile=watchProfilePhoto(MICROBIA_UID,'microbiaProfileImg','microbiaProfileFallback');
+ unsubStories=onSnapshot(query(collection(db,'stories'),orderBy('createdAt','asc')),snap=>renderStories(snap));
  const msgRef=doc(db,'shared','dadMessage');
  unsubMessage=onSnapshot(msgRef,snap=>{ if(snap.exists()&&snap.data().text) $('dadMessage').textContent='“'+snap.data().text+'”'; });
 
@@ -339,7 +601,7 @@ onAuthStateChanged(auth,user=>{
 function watchProfilePhoto(uid,imgId,fallbackId){
  return onSnapshot(doc(db,'profiles',uid),snap=>{
    const imageUrl=snap.exists()?(snap.data().photoURL||''):'';
-   const img=$(imgId), fallback=$(fallbackId);
+   const img=$(imgId), fallback=$(fallbackId); profilePhotos[uid]=imageUrl;
    if(imageUrl){
      img.src=imageUrl; img.hidden=false; fallback.hidden=true;
    }else{
@@ -404,6 +666,161 @@ $('profilePhotoInput').addEventListener('change',async e=>{
    profileUploadTargetUid=null;
  }
 });
+
+
+function roleName(uid){ return uid===DAD_UID?'Dad':'Microbia'; }
+
+function renderStories(snap){
+ const cutoff=Date.now()-24*60*60*1000;
+ activeStories=snap.docs.map(d=>({id:d.id,...d.data()})).filter(s=>{
+   const ms=s.createdAt?.toMillis?.()||0;
+   return ms>=cutoff && !!s.photoURL;
+ });
+ const row=$('storyRow');
+ if(!activeStories.length){
+   row.innerHTML='<p class="empty-state">No active stories yet. Take one together ♡</p>';
+   return;
+ }
+ row.innerHTML=activeStories.map((s,i)=>{
+   const uid=s.createdBy||'';
+   const avatar=profilePhotos[uid]||s.photoURL;
+   return `<button class="story-bubble" type="button" data-story-index="${i}">
+     <span class="story-ring"><img src="${escapeHTML(avatar)}" alt="${escapeHTML(roleName(uid))} Story"></span>
+     <span class="story-label">${escapeHTML(roleName(uid))}</span>
+   </button>`;
+ }).join('');
+}
+
+$('storyRow').addEventListener('click',e=>{
+ const btn=e.target.closest('[data-story-index]');
+ if(!btn)return;
+ openStory(Number(btn.dataset.storyIndex));
+});
+
+$('addStoryBtn').addEventListener('click',()=>{
+ if(!auth.currentUser)return;
+ $('storyCameraInput').value='';
+ $('storyCameraInput').click();
+});
+
+$('storyCameraInput').addEventListener('change',e=>{
+ const file=e.target.files?.[0];
+ if(!file)return;
+ if(!file.type.startsWith('image/')){ alert('Please take a photo ♡'); return; }
+ if(file.size>12*1024*1024){ alert('That photo is too large. Please take another one ♡'); return; }
+ storyFile=file;
+ if(storyPreviewUrl) URL.revokeObjectURL(storyPreviewUrl);
+ storyPreviewUrl=URL.createObjectURL(file);
+ $('storyPreview').src=storyPreviewUrl;
+ $('storyCaptionInput').value='';
+ $('storyComposeStatus').textContent='';
+ $('storyCompose').hidden=false;
+});
+
+function closeComposer(){
+ $('storyCompose').hidden=true;
+ storyFile=null;
+ $('storyCameraInput').value='';
+ if(storyPreviewUrl){ URL.revokeObjectURL(storyPreviewUrl); storyPreviewUrl=''; }
+}
+
+$('cancelStoryBtn').addEventListener('click',closeComposer);
+
+$('postStoryBtn').addEventListener('click',async()=>{
+ if(!auth.currentUser||!storyFile)return;
+ const btn=$('postStoryBtn');
+ btn.disabled=true;
+ $('storyComposeStatus').textContent='Posting your Story…';
+ try{
+   const formData=new FormData();
+   formData.append('file',storyFile);
+   formData.append('upload_preset',CLOUDINARY_UPLOAD_PRESET);
+   const response=await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`,{
+     method:'POST',body:formData
+   });
+   const result=await response.json();
+   if(!response.ok||!result.secure_url) throw new Error(result.error?.message||'Story upload failed');
+
+   await addDoc(collection(db,'stories'),{
+     photoURL:result.secure_url,
+     cloudinaryPublicId:result.public_id||'',
+     caption:$('storyCaptionInput').value.trim(),
+     createdBy:auth.currentUser.uid,
+     createdAt:serverTimestamp(),
+     likes:[]
+   });
+   $('storyStatus').textContent='Story posted ♡';
+   closeComposer();
+ }catch(err){
+   console.error('Story upload error:',err);
+   $('storyComposeStatus').textContent='Could not post the Story. Try again ♡';
+ }finally{ btn.disabled=false; }
+});
+
+function openStory(index){
+ if(!activeStories.length)return;
+ storyIndex=Math.max(0,Math.min(index,activeStories.length-1));
+ showStory();
+ $('storyModal').hidden=false;
+}
+
+function showStory(){
+ clearTimeout(storyTimer);
+ const s=activeStories[storyIndex];
+ if(!s){ closeStory(); return; }
+ $('storyViewerPhoto').src=s.photoURL;
+ $('storyViewerCaption').textContent=s.caption||'';
+ $('storyViewerName').textContent=roleName(s.createdBy)+' ♡';
+ const avatar=profilePhotos[s.createdBy]||s.photoURL;
+ $('storyViewerAvatar').src=avatar;
+ const liked=(s.likes||[]).includes(auth.currentUser?.uid);
+ $('storyLikeBtn').textContent=liked?'♥ Liked':'♡ Like';
+ $('storyLikeBtn').classList.toggle('liked',liked);
+ const bar=$('storyProgressBar');
+ bar.style.transition='none'; bar.style.width='0%';
+ requestAnimationFrame(()=>requestAnimationFrame(()=>{
+   bar.style.transition='width 7s linear'; bar.style.width='100%';
+ }));
+ storyTimer=setTimeout(()=>nextStory(),7000);
+}
+
+function closeStory(){
+ clearTimeout(storyTimer);
+ $('storyModal').hidden=true;
+}
+
+function nextStory(){
+ if(storyIndex<activeStories.length-1){ storyIndex++; showStory(); }
+ else closeStory();
+}
+
+function prevStory(){
+ if(storyIndex>0){ storyIndex--; showStory(); }
+ else showStory();
+}
+
+$('closeStoryBtn').addEventListener('click',closeStory);
+$('nextStoryBtn').addEventListener('click',nextStory);
+$('prevStoryBtn').addEventListener('click',prevStory);
+
+$('storyLikeBtn').addEventListener('click',async()=>{
+ if(!auth.currentUser||!activeStories[storyIndex])return;
+ clearTimeout(storyTimer);
+ const s=activeStories[storyIndex];
+ const liked=(s.likes||[]).includes(auth.currentUser.uid);
+ try{
+   await updateDoc(doc(db,'stories',s.id),{
+     likes: liked?arrayRemove(auth.currentUser.uid):arrayUnion(auth.currentUser.uid)
+   });
+   if(liked) s.likes=(s.likes||[]).filter(x=>x!==auth.currentUser.uid);
+   else s.likes=[...(s.likes||[]),auth.currentUser.uid];
+   $('storyLikeBtn').textContent=liked?'♡ Like':'♥ Liked';
+   $('storyLikeBtn').classList.toggle('liked',!liked);
+ }catch(err){
+   console.error('Story like error:',err);
+ }
+});
+
 
 async function prepareMessaging(){
  const btn=$('enableNotificationsBtn');
