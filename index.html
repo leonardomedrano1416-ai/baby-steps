@@ -345,6 +345,53 @@
     background:#000;
   }
 
+
+  /* Baby Steps fixed bottom app navigation */
+  body { padding-bottom: calc(92px + env(safe-area-inset-bottom)); }
+  .app-page { display:none; }
+  .app-page.active { display:block; }
+  .bottom-nav {
+    position:fixed;
+    left:0; right:0; bottom:0;
+    z-index:8000;
+    display:grid;
+    grid-template-columns:repeat(5,1fr);
+    padding:7px 8px calc(7px + env(safe-area-inset-bottom));
+    background:rgba(255,247,249,.97);
+    border-top:1px solid #e5c7d0;
+    box-shadow:0 -6px 24px rgba(74,29,39,.12);
+    backdrop-filter:blur(14px);
+  }
+  .bottom-nav button {
+    border:0;
+    background:transparent;
+    color:#76515d;
+    padding:5px 2px;
+    min-width:0;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:2px;
+    font:inherit;
+    font-size:.68rem;
+    font-weight:700;
+  }
+  .bottom-nav .nav-icon { font-size:1.35rem; line-height:1.2; }
+  .bottom-nav button.active { color:#8f3f59; }
+  .bottom-nav button.active .nav-icon {
+    transform:translateY(-1px);
+    filter:drop-shadow(0 2px 3px rgba(143,63,89,.18));
+  }
+  .page-heading { margin:8px 0 16px; }
+  .page-heading h2 { margin:2px 0 4px; }
+  .page-heading p { margin:0; }
+  .coming-card { text-align:center; padding:24px 18px; }
+  .profile-actions { display:grid; gap:10px; margin-top:12px; }
+  .profile-actions button { width:100%; }
+  @media (min-width:700px) {
+    .bottom-nav { left:50%; transform:translateX(-50%); max-width:760px; border-radius:22px 22px 0 0; }
+  }
+
 </style></head>
 <body>
 <div id="loginOverlay" class="login-overlay">
@@ -481,10 +528,30 @@
 
 <header class="brand">
   <div><h1>Baby Steps ♡</h1><p>for you, for our little one ♡</p></div>
-  <nav aria-label="Baby Steps">
-    <a class="active" href="#home">⌂ Home</a><a href="#journey">▣ Journey</a><a href="#messages">♡ Messages</a>
-  </nav>
 </header>
+
+<section id="page-home" class="app-page active" data-page="home">
+  <div id="homePageMount"></div>
+</section>
+<section id="page-memories" class="app-page" data-page="memories">
+  <div class="page-heading"><b>OUR MEMORIES ♡</b><h2>Little moments, forever</h2><p>Milestones, photos, videos and saved Stories live here.</p></div>
+  <div id="memoriesPageMount"></div>
+  <section class="card coming-card"><span class="badge">🖼️</span><h3>Photos & archived Stories</h3><p>Your Memories gallery will live here as we build it out ♡</p></section>
+</section>
+<section id="page-us" class="app-page" data-page="us">
+  <div class="page-heading"><b>JUST US ♡</b><h2>Dad & Microbia</h2><p>A private place for your messages.</p></div>
+  <div id="usPageMount"></div>
+  <section class="card coming-card"><span class="badge">💬</span><h3>Two-way chat is next ♡</h3><p>For now, your existing Dad message stays here safely.</p></section>
+</section>
+<section id="page-schedule" class="app-page" data-page="schedule">
+  <div class="page-heading"><b>OUR SCHEDULE ♡</b><h2>Dates that matter</h2><p>Appointments and important pregnancy dates in one place.</p></div>
+  <div id="schedulePageMount"></div>
+</section>
+<section id="page-profile" class="app-page" data-page="profile">
+  <div class="page-heading"><b>OUR PROFILE ♡</b><h2>Dad & Microbia</h2><p>Stories, profile pictures and everything you share.</p></div>
+  <div id="profilePageMount"></div>
+</section>
+
 
 <section id="home" class="card prenatal">
   <div class="sectionline"><span>♡</span><b>TODAY'S PRENATAL</b><span class="badge">💊</span></div>
@@ -589,6 +656,15 @@
   <div class="card mini"><span class="badge">♡</span><div><b>MESSAGES</b><p>Notes from Dad</p></div></div>
 </div>
 <footer>— &nbsp; You’re doing amazing ♡ &nbsp; —</footer>
+
+<nav class="bottom-nav" aria-label="Baby Steps app navigation">
+  <button type="button" class="active" data-page-target="home"><span class="nav-icon">⌂</span><span>Home</span></button>
+  <button type="button" data-page-target="memories"><span class="nav-icon">▣</span><span>Memories</span></button>
+  <button type="button" data-page-target="us"><span class="nav-icon">💬</span><span>Us</span></button>
+  <button type="button" data-page-target="schedule"><span class="nav-icon">📅</span><span>Schedule</span></button>
+  <button type="button" data-page-target="profile"><span class="nav-icon">♡</span><span>Profile</span></button>
+</nav>
+
 </main>
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-app.js";
@@ -627,6 +703,60 @@ let viewedStoryIds=new Set();
 let unsubStoryViews=null;
 
 $('today').textContent=new Date().toLocaleDateString(undefined,{weekday:'long',month:'long',day:'numeric'});
+
+
+// Baby Steps app organization
+function organizeAppPages(){
+  const homeMount=$('homePageMount');
+  const memoriesMount=$('memoriesPageMount');
+  const usMount=$('usPageMount');
+  const scheduleMount=$('schedulePageMount');
+  const profileMount=$('profilePageMount');
+
+  // Profile: profiles + Story creator
+  const profileCard=document.querySelector('.profile-card');
+  const storiesCard=document.querySelector('.stories-card');
+  if(profileCard) profileMount.appendChild(profileCard);
+  if(storiesCard) profileMount.appendChild(storiesCard);
+
+  // Home: prenatal, greeting/pregnancy/today, notifications
+  const prenatal=$('home');
+  const dashboard=document.querySelector('.dashboard');
+  const notifications=$('notifications');
+  if(prenatal) homeMount.appendChild(prenatal);
+  if(dashboard) homeMount.appendChild(dashboard);
+  if(notifications) homeMount.appendChild(notifications);
+
+  // Memories: milestone half of old Journey
+  const journey=$('journey');
+  const journeyGrid=journey?.querySelector('.journey-grid');
+  const journeyCards=journeyGrid?[...journeyGrid.querySelectorAll(':scope > .journey-card')]:[];
+  if(journeyCards[0]) memoriesMount.appendChild(journeyCards[0]);
+
+  // Schedule: appointment half
+  if(journeyCards[1]) scheduleMount.appendChild(journeyCards[1]);
+
+  // Us: existing Dad's Corner
+  const messages=$('messages');
+  if(messages) usMount.appendChild(messages);
+
+  // Hide obsolete wrappers/quick links now that bottom navigation replaces them.
+  if(journey) journey.hidden=true;
+  const quick=document.querySelector('.quick');
+  if(quick) quick.hidden=true;
+}
+
+function showAppPage(page){
+  document.querySelectorAll('.app-page').forEach(el=>el.classList.toggle('active',el.dataset.page===page));
+  document.querySelectorAll('.bottom-nav [data-page-target]').forEach(btn=>btn.classList.toggle('active',btn.dataset.pageTarget===page));
+  window.scrollTo({top:0,behavior:'instant'});
+}
+
+organizeAppPages();
+document.querySelectorAll('.bottom-nav [data-page-target]').forEach(btn=>{
+  btn.addEventListener('click',()=>showAppPage(btn.dataset.pageTarget));
+});
+
 
 $('loginForm').addEventListener('submit', async e=>{
  e.preventDefault(); $('loginError').textContent='Signing in…';
