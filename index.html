@@ -392,6 +392,56 @@
     .bottom-nav { left:50%; transform:translateX(-50%); max-width:760px; border-radius:22px 22px 0 0; }
   }
 
+
+  /* Us ♡ private chat */
+  .us-chat-card { padding:0; overflow:hidden; }
+  .us-chat-head {
+    display:flex; align-items:center; gap:12px;
+    padding:16px 18px; border-bottom:1px solid #ead2d9;
+    background:rgba(255,247,249,.88);
+  }
+  .us-chat-avatars { display:flex; align-items:center; min-width:74px; }
+  .us-chat-avatar {
+    width:42px; height:42px; border-radius:50%; object-fit:cover;
+    border:2px solid #fff; background:#f6dfe6;
+  }
+  .us-chat-avatar + .us-chat-avatar { margin-left:-11px; }
+  .us-chat-head h3 { margin:0; }
+  .us-chat-head p { margin:2px 0 0; font-size:.86rem; }
+  .chat-list {
+    min-height:300px; max-height:52vh; overflow-y:auto;
+    padding:18px 14px; display:flex; flex-direction:column; gap:10px;
+    background:rgba(255,255,255,.36);
+  }
+  .chat-empty { text-align:center; margin:auto; opacity:.72; padding:40px 18px; }
+  .chat-row { display:flex; flex-direction:column; max-width:82%; }
+  .chat-row.mine { align-self:flex-end; align-items:flex-end; }
+  .chat-row.theirs { align-self:flex-start; align-items:flex-start; }
+  .chat-meta { font-size:.69rem; opacity:.65; margin:0 7px 3px; }
+  .chat-bubble {
+    padding:10px 13px; border-radius:18px; line-height:1.35;
+    overflow-wrap:anywhere; box-shadow:0 2px 7px rgba(74,29,39,.06);
+  }
+  .chat-row.mine .chat-bubble {
+    background:#8f3f59; color:white; border-bottom-right-radius:5px;
+  }
+  .chat-row.theirs .chat-bubble {
+    background:#f7e5ea; color:#4a1d27; border-bottom-left-radius:5px;
+  }
+  .chat-form {
+    display:flex; gap:8px; padding:12px;
+    border-top:1px solid #ead2d9; background:#fff7f9;
+    padding-bottom:max(12px,env(safe-area-inset-bottom));
+  }
+  .chat-form textarea {
+    flex:1; min-width:0; resize:none; max-height:110px;
+    border-radius:20px; padding:10px 13px; box-sizing:border-box;
+  }
+  .chat-send {
+    align-self:flex-end; border-radius:999px; padding:10px 14px; white-space:nowrap;
+  }
+  .chat-status { margin:0; padding:0 14px 10px; background:#fff7f9; font-size:.8rem; }
+
 </style></head>
 <body>
 <div id="loginOverlay" class="login-overlay">
@@ -539,9 +589,24 @@
   <section class="card coming-card"><span class="badge">🖼️</span><h3>Photos & archived Stories</h3><p>Your Memories gallery will live here as we build it out ♡</p></section>
 </section>
 <section id="page-us" class="app-page" data-page="us">
-  <div class="page-heading"><b>JUST US ♡</b><h2>Dad & Microbia</h2><p>A private place for your messages.</p></div>
-  <div id="usPageMount"></div>
-  <section class="card coming-card"><span class="badge">💬</span><h3>Two-way chat is next ♡</h3><p>For now, your existing Dad message stays here safely.</p></section>
+  <div class="page-heading"><b>JUST US ♡</b><h2>Dad & Microbia</h2><p>Our little private space.</p></div>
+  <section class="card us-chat-card">
+    <div class="us-chat-head">
+      <div class="us-chat-avatars">
+        <img id="chatDadAvatar" class="us-chat-avatar" alt="Dad">
+        <img id="chatMicrobiaAvatar" class="us-chat-avatar" alt="Microbia">
+      </div>
+      <div><h3>Us ♡</h3><p>Just Dad & Microbia</p></div>
+    </div>
+    <div id="chatList" class="chat-list" aria-live="polite">
+      <p class="chat-empty">Your conversation starts here ♡</p>
+    </div>
+    <form id="chatForm" class="chat-form">
+      <textarea id="chatInput" rows="1" maxlength="1000" placeholder="Write a message..." aria-label="Write a message"></textarea>
+      <button id="chatSendBtn" class="chat-send" type="submit">Send ♡</button>
+    </form>
+    <p id="chatStatus" class="chat-status center" aria-live="polite"></p>
+  </section>
 </section>
 <section id="page-schedule" class="app-page" data-page="schedule">
   <div class="page-heading"><b>OUR SCHEDULE ♡</b><h2>Dates that matter</h2><p>Appointments and important pregnancy dates in one place.</p></div>
@@ -628,7 +693,7 @@
   </div>
 </section>
 
-<section id="messages" class="card dad dad-only" hidden>
+<section id="messages" class="card dad dad-only" hidden style="display:none">
   <h2>Dad's Corner ✍️</h2>
   <p>Leave Microbia a little note.</p>
   <form id="messageForm">
@@ -693,6 +758,7 @@ let storyTimer=null;
 let profilePhotos={};
 let viewedStoryIds=new Set();
 let unsubStoryViews=null;
+let unsubChat=null;
 
 
 
@@ -701,7 +767,6 @@ let unsubStoryViews=null;
 function organizeAppPages(){
   const homeMount=$('homePageMount');
   const memoriesMount=$('memoriesPageMount');
-  const usMount=$('usPageMount');
   const scheduleMount=$('schedulePageMount');
   const profileMount=$('profilePageMount');
 
@@ -725,10 +790,6 @@ function organizeAppPages(){
 
   // Schedule: appointment half
   if(journeyCards[1]) scheduleMount.appendChild(journeyCards[1]);
-
-  // Us: existing Dad's Corner
-  const messages=$('messages');
-  if(messages) usMount.appendChild(messages);
 
   // Hide obsolete wrappers/quick links now that bottom navigation replaces them.
   if(journey) journey.hidden=true;
@@ -754,7 +815,7 @@ $('loginForm').addEventListener('submit', async e=>{
 $('signOutBtn').addEventListener('click',()=>signOut(auth));
 
 onAuthStateChanged(auth,user=>{
- if(unsubMessage) unsubMessage(); if(unsubPrenatal) unsubPrenatal(); if(unsubPregnancy) unsubPregnancy(); if(unsubMilestones) unsubMilestones(); if(unsubAppointments) unsubAppointments(); if(unsubDadProfile) unsubDadProfile(); if(unsubMicrobiaProfile) unsubMicrobiaProfile(); if(unsubStories) unsubStories(); if(unsubStoryViews) unsubStoryViews();
+ if(unsubMessage) unsubMessage(); if(unsubPrenatal) unsubPrenatal(); if(unsubPregnancy) unsubPregnancy(); if(unsubMilestones) unsubMilestones(); if(unsubAppointments) unsubAppointments(); if(unsubDadProfile) unsubDadProfile(); if(unsubMicrobiaProfile) unsubMicrobiaProfile(); if(unsubStories) unsubStories(); if(unsubStoryViews) unsubStoryViews(); if(unsubChat) unsubChat();
  if(!user){ $('loginOverlay').hidden=false; $('signedInAs').textContent=''; $('syncStatus').textContent='Signed out'; return; }
  $('loginOverlay').hidden=true; const isDad=user.uid===DAD_UID; $('signedInAs').textContent=isDad?'Dad':'Microbia'; $('syncStatus').textContent='Synced ♡'; $('roleGreeting').innerHTML=isDad?'Hey,<em>Dad ♡</em>':'Good morning,<em>Microbia ♡</em>'; 
  document.querySelector('.dad-only').hidden=!isDad;
@@ -1104,6 +1165,70 @@ $('storyCommentForm').addEventListener('submit',async e=>{
    console.error('Story comment error:',err);
    alert('Could not send the comment. Try again ♡');
  }
+});
+
+
+function chatTime(ts){
+  const d=ts?.toDate?.();
+  if(!d)return '';
+  return d.toLocaleTimeString(undefined,{hour:'numeric',minute:'2-digit'});
+}
+
+function updateChatAvatars(){
+  const dad=$('chatDadAvatar'), microbia=$('chatMicrobiaAvatar');
+  if(dad){
+    if(profilePhotos[DAD_UID]) dad.src=profilePhotos[DAD_UID];
+    else dad.removeAttribute('src');
+  }
+  if(microbia){
+    if(profilePhotos[MICROBIA_UID]) microbia.src=profilePhotos[MICROBIA_UID];
+    else microbia.removeAttribute('src');
+  }
+}
+
+function renderChat(snap){
+  const list=$('chatList');
+  if(!list)return;
+  if(snap.empty){
+    list.innerHTML='<p class="chat-empty">Your conversation starts here ♡</p>';
+    return;
+  }
+  list.innerHTML=snap.docs.map(d=>{
+    const m=d.data();
+    const mine=m.senderId===auth.currentUser?.uid;
+    const name=roleName(m.senderId);
+    return `<div class="chat-row ${mine?'mine':'theirs'}">
+      <div class="chat-meta">${escapeHTML(name)}${chatTime(m.createdAt)?' · '+escapeHTML(chatTime(m.createdAt)):''}</div>
+      <div class="chat-bubble">${escapeHTML(m.text||'')}</div>
+    </div>`;
+  }).join('');
+  requestAnimationFrame(()=>{ list.scrollTop=list.scrollHeight; });
+}
+
+$('chatForm').addEventListener('submit',async e=>{
+  e.preventDefault();
+  if(!auth.currentUser)return;
+  const input=$('chatInput');
+  const text=input.value.trim();
+  if(!text)return;
+  const btn=$('chatSendBtn');
+  btn.disabled=true;
+  $('chatStatus').textContent='Sending…';
+  try{
+    await addDoc(collection(db,'chatMessages'),{
+      text:text.slice(0,1000),
+      senderId:auth.currentUser.uid,
+      createdAt:serverTimestamp()
+    });
+    input.value='';
+    $('chatStatus').textContent='';
+  }catch(err){
+    console.error('Chat send error:',err);
+    $('chatStatus').textContent='Could not send. Try again ♡';
+  }finally{
+    btn.disabled=false;
+    input.focus();
+  }
 });
 
 async function prepareMessaging(){
