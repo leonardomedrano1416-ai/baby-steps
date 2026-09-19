@@ -599,6 +599,36 @@
   .chat-row.mine .chat-media-wrap { border-bottom-right-radius:5px; }
   .chat-row.theirs .chat-media-wrap { border-bottom-left-radius:5px; }
 
+
+  /* Home Create menu */
+  #page-home { position:relative; }
+  .home-create-wrap { position:absolute; top:0; right:2px; z-index:40; }
+  .home-create-btn {
+    width:42px !important; height:42px !important; min-width:42px !important;
+    padding:0 !important; margin:0 !important; border-radius:50% !important;
+    font-size:27px !important; line-height:40px !important;
+    box-shadow:0 5px 16px rgba(74,29,39,.16);
+  }
+  .home-create-menu {
+    position:absolute; top:50px; right:0; width:220px; padding:7px;
+    border-radius:18px; background:rgba(255,248,250,.98);
+    border:1px solid #ead2d9; box-shadow:0 12px 30px rgba(74,29,39,.18);
+    backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px);
+  }
+  .home-create-menu[hidden] { display:none !important; }
+  .home-create-menu button {
+    width:100%; display:flex; align-items:center; gap:11px;
+    padding:11px 10px !important; margin:0 !important;
+    border:0 !important; background:transparent !important;
+    box-shadow:none !important; text-align:left; color:inherit !important;
+    border-radius:13px !important;
+  }
+  .home-create-menu button + button { border-top:1px solid #f0dfe4 !important; }
+  .home-create-menu button span { width:28px; font-size:21px; text-align:center; }
+  .home-create-menu button div { display:flex; flex-direction:column; gap:2px; }
+  .home-create-menu button b { font-size:.94rem; }
+  .home-create-menu button small { font-size:.74rem; opacity:.66; font-weight:400; }
+
 </style></head>
 <body>
 <div id="loginOverlay" class="login-overlay">
@@ -738,6 +768,13 @@
 </header>
 
 <section id="page-home" class="app-page active" data-page="home">
+  <div class="home-create-wrap">
+    <button id="homeCreateBtn" class="home-create-btn" type="button" aria-label="Create" aria-expanded="false">＋</button>
+    <div id="homeCreateMenu" class="home-create-menu" hidden>
+      <button id="homeAddStoryBtn" type="button"><span>◎</span><div><b>Add Story</b><small>Share a photo or video</small></div></button>
+      <button id="homeCreatePostBtn" type="button"><span>▣</span><div><b>Create Post</b><small>Coming next ♡</small></div></button>
+    </div>
+  </div>
   <div id="homePageMount"></div>
 </section>
 <section id="page-memories" class="app-page" data-page="memories">
@@ -1128,6 +1165,38 @@ async function markStoryViewed(story){
    },{merge:true});
  }catch(err){ console.error('Could not save Story view:',err); }
 }
+
+
+const homeCreateBtn=$('homeCreateBtn');
+const homeCreateMenu=$('homeCreateMenu');
+
+homeCreateBtn.addEventListener('click',e=>{
+  e.stopPropagation();
+  const opening=homeCreateMenu.hidden;
+  homeCreateMenu.hidden=!opening;
+  homeCreateBtn.setAttribute('aria-expanded',opening?'true':'false');
+});
+
+document.addEventListener('click',e=>{
+  if(!e.target.closest('.home-create-wrap')){
+    homeCreateMenu.hidden=true;
+    homeCreateBtn.setAttribute('aria-expanded','false');
+  }
+});
+
+$('homeAddStoryBtn').addEventListener('click',()=>{
+  homeCreateMenu.hidden=true;
+  homeCreateBtn.setAttribute('aria-expanded','false');
+  if(!auth.currentUser)return;
+  $('storyCameraInput').value='';
+  $('storyCameraInput').click();
+});
+
+$('homeCreatePostBtn').addEventListener('click',()=>{
+  homeCreateMenu.hidden=true;
+  homeCreateBtn.setAttribute('aria-expanded','false');
+  alert('Profile posts are coming next ♡');
+});
 
 $('addStoryBtn').addEventListener('click',()=>{
  if(!auth.currentUser)return;
