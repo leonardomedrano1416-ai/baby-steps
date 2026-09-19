@@ -594,11 +594,7 @@
         <p id="dueDateStatus" class="center" aria-live="polite"></p>
       </form>
     </section>
-    <section class="card info">
-      <div class="message-title"><span class="badge">♥</span><b>TODAY</b></div>
-      <h3 id="today">—</h3>
-      <p>One day at a time, Mama. ♡</p>
-    </section>
+
   </div>
 </div>
 
@@ -642,7 +638,7 @@
   <p id="messageStatus" class="center" aria-live="polite"></p>
 </section>
 
-<section id="notifications" class="card info">
+<section id="notifications" class="card info" hidden>
   <div class="message-title"><span class="badge">🔔</span><b>NOTIFICATIONS</b></div>
   <h3>Baby Steps reminders ♡</h3>
   <p>Turn on notifications on this device for prenatal, appointment, and message reminders.</p>
@@ -650,11 +646,7 @@
   <p id="notificationStatus" class="center" aria-live="polite">Notifications are off on this device.</p>
 </section>
 
-<div class="quick">
-  <div class="card mini"><span class="badge">📖</span><div><b>LEARN</b><p>Articles, tips, and resources</p></div></div>
-  <div class="card mini"><span class="badge">📅</span><div><b>JOURNEY</b><p>Track milestones</p></div></div>
-  <div class="card mini"><span class="badge">♡</span><div><b>MESSAGES</b><p>Notes from Dad</p></div></div>
-</div>
+
 <footer>— &nbsp; You’re doing amazing ♡ &nbsp; —</footer>
 
 <nav class="bottom-nav" aria-label="Baby Steps app navigation">
@@ -702,7 +694,7 @@ let profilePhotos={};
 let viewedStoryIds=new Set();
 let unsubStoryViews=null;
 
-$('today').textContent=new Date().toLocaleDateString(undefined,{weekday:'long',month:'long',day:'numeric'});
+
 
 
 // Baby Steps app organization
@@ -722,10 +714,8 @@ function organizeAppPages(){
   // Home: prenatal, greeting/pregnancy/today, notifications
   const prenatal=$('home');
   const dashboard=document.querySelector('.dashboard');
-  const notifications=$('notifications');
   if(prenatal) homeMount.appendChild(prenatal);
   if(dashboard) homeMount.appendChild(dashboard);
-  if(notifications) homeMount.appendChild(notifications);
 
   // Memories: milestone half of old Journey
   const journey=$('journey');
@@ -742,8 +732,6 @@ function organizeAppPages(){
 
   // Hide obsolete wrappers/quick links now that bottom navigation replaces them.
   if(journey) journey.hidden=true;
-  const quick=document.querySelector('.quick');
-  if(quick) quick.hidden=true;
 }
 
 function showAppPage(page){
