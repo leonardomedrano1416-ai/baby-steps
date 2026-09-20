@@ -723,6 +723,105 @@
     white-space:nowrap;
   }
 
+
+/* Individual profile */
+.legacy-profile-mount { display:none !important; }
+
+.individual-profile-heading {
+  text-align:center;
+  margin-bottom:14px;
+}
+.individual-profile-card {
+  text-align:center;
+  padding:24px 18px 20px;
+}
+.individual-profile-photo-btn {
+  width:112px !important;
+  height:112px !important;
+  min-width:112px !important;
+  margin:0 auto 12px !important;
+  padding:4px !important;
+  border-radius:50% !important;
+  border:4px solid #d8a8b7 !important;
+  background:#f8e3e9 !important;
+  overflow:hidden;
+  box-shadow:0 5px 18px rgba(74,29,39,.14) !important;
+}
+.individual-profile-photo-btn.story-unseen {
+  border-color:#c53f70 !important;
+  box-shadow:0 0 0 4px rgba(197,63,112,.16),0 5px 18px rgba(74,29,39,.14) !important;
+}
+.individual-profile-photo-btn.story-seen { border-color:#d7bcc5 !important; }
+.individual-profile-photo-btn.story-none { border-color:#e4cbd2 !important; }
+.individual-profile-photo-btn img {
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  display:block;
+  border-radius:50%;
+}
+.individual-profile-photo-btn span {
+  width:100%;
+  height:100%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  border-radius:50%;
+  font-size:2rem;
+  font-weight:700;
+  color:#8f3f59;
+}
+.individual-profile-card h2 {
+  margin:4px 0 2px;
+  font-size:1.55rem;
+}
+.individual-profile-card > p {
+  margin:0;
+  color:#805766;
+}
+.individual-profile-actions {
+  display:flex;
+  justify-content:center;
+  flex-wrap:wrap;
+  gap:8px;
+  margin-top:18px;
+}
+.individual-profile-actions button {
+  width:auto !important;
+  min-width:118px;
+  margin:0 !important;
+  padding:10px 14px !important;
+}
+.individual-posts-card { margin-top:14px; }
+.individual-posts-head {
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:12px;
+}
+.individual-posts-head b {
+  font-size:.75rem;
+  letter-spacing:.08em;
+  color:#9b5b70;
+}
+.individual-posts-head h3 { margin:3px 0 0; }
+.individual-posts-icon {
+  font-size:1.5rem;
+  color:#9b5b70;
+}
+.individual-posts-empty {
+  text-align:center;
+  padding:28px 12px 16px;
+  color:#8b6974;
+}
+.individual-posts-empty > span {
+  display:block;
+  font-size:2rem;
+  margin-bottom:4px;
+}
+.individual-posts-empty h3 { margin:4px 0; color:#714553; }
+.individual-posts-empty p { margin:4px auto 0; max-width:300px; font-size:.9rem; }
+
 </style></head>
 <body>
 <div id="loginOverlay" class="login-overlay">
@@ -923,8 +1022,44 @@
   <div id="schedulePageMount"></div>
 </section>
 <section id="page-profile" class="app-page" data-page="profile">
-  <div class="page-heading"><b>OUR PROFILE ♡</b><h2>Dad & Microbia</h2><p>Stories, profile pictures and everything you share.</p></div>
-  <div id="profilePageMount"></div>
+  <div class="page-heading individual-profile-heading">
+    <b>PROFILE ♡</b>
+    <h2 id="viewProfileHeading">My Profile</h2>
+    <p id="viewProfileSubheading">Your little corner of Baby Steps.</p>
+  </div>
+
+  <section class="card individual-profile-card">
+    <button id="individualProfilePhotoBtn" class="individual-profile-photo-btn" type="button" aria-label="Profile picture">
+      <img id="individualProfilePhoto" alt="Profile picture" hidden>
+      <span id="individualProfileFallback">♡</span>
+    </button>
+
+    <h2 id="individualProfileName">—</h2>
+    <p id="individualProfileRole">Baby Steps ♡</p>
+
+    <div class="individual-profile-actions">
+      <button id="individualViewStoryBtn" class="secondary-btn" type="button" hidden>◎ View Story</button>
+      <button id="individualChangePhotoBtn" class="secondary-btn" type="button" hidden>Change photo</button>
+      <button id="individualAddStoryBtn" type="button" hidden>＋ Add Story</button>
+    </div>
+  </section>
+
+  <section class="card individual-posts-card">
+    <div class="individual-posts-head">
+      <div>
+        <b>POSTS ♡</b>
+        <h3 id="individualPostsTitle">Posts</h3>
+      </div>
+      <span class="individual-posts-icon">▣</span>
+    </div>
+    <div class="individual-posts-empty">
+      <span>♡</span>
+      <h3>No posts yet</h3>
+      <p id="individualPostsEmptyText">Permanent moments will show here once we build Create Post.</p>
+    </div>
+  </section>
+
+  <div id="profilePageMount" class="legacy-profile-mount"></div>
 </section>
 
 
@@ -1105,7 +1240,86 @@ function organizeAppPages(){
   if(journey) journey.hidden=true;
 }
 
+
+let viewedProfileUid=null;
+
+function profileDisplayName(uid){
+  return uid===DAD_UID ? 'Dad' : 'Microbia';
+}
+
+function renderIndividualProfile(uid){
+  if(!uid) uid=auth.currentUser?.uid || DAD_UID;
+  viewedProfileUid=uid;
+
+  const isOwn=!!auth.currentUser && auth.currentUser.uid===uid;
+  const name=profileDisplayName(uid);
+  const photo=profilePhotos[uid] || '';
+  const stories=activeStories.filter(story=>story.createdBy===uid);
+  const hasUnseen=stories.some(story=>!viewedStoryIds.has(story.id));
+
+  $('viewProfileHeading').textContent=isOwn ? 'My Profile' : `${name}'s Profile`;
+  $('viewProfileSubheading').textContent=isOwn
+    ? 'Your little corner of Baby Steps.'
+    : `Stories and permanent moments from ${name}.`;
+
+  $('individualProfileName').textContent=name+' ♡';
+  $('individualProfileRole').textContent=uid===DAD_UID ? 'Dad ♡' : 'Mama ♡';
+  $('individualPostsTitle').textContent=`${name}'s Posts`;
+  $('individualPostsEmptyText').textContent=isOwn
+    ? 'Your permanent moments will show here once we connect Create Post.'
+    : `${name}'s permanent moments will show here.`;
+
+  const img=$('individualProfilePhoto');
+  const fallback=$('individualProfileFallback');
+  if(photo){
+    img.src=photo;
+    img.hidden=false;
+    fallback.hidden=true;
+  }else{
+    img.removeAttribute('src');
+    img.hidden=true;
+    fallback.hidden=false;
+    fallback.textContent=uid===DAD_UID?'D':'M';
+  }
+
+  const photoBtn=$('individualProfilePhotoBtn');
+  photoBtn.classList.remove('story-unseen','story-seen','story-none');
+  photoBtn.classList.add(stories.length ? (hasUnseen?'story-unseen':'story-seen') : 'story-none');
+
+  $('individualViewStoryBtn').hidden=!stories.length;
+  $('individualChangePhotoBtn').hidden=!isOwn;
+  $('individualAddStoryBtn').hidden=!isOwn;
+}
+
+function openViewedProfileStory(){
+  if(!viewedProfileUid)return;
+  const stories=activeStories.filter(story=>story.createdBy===viewedProfileUid);
+  if(!stories.length)return;
+  const firstUnseen=stories.find(story=>!viewedStoryIds.has(story.id))||stories[0];
+  const index=activeStories.findIndex(story=>story.id===firstUnseen.id);
+  if(index>=0) openStory(index);
+}
+
+$('individualProfilePhotoBtn').addEventListener('click',openViewedProfileStory);
+$('individualViewStoryBtn').addEventListener('click',openViewedProfileStory);
+
+$('individualChangePhotoBtn').addEventListener('click',()=>{
+  if(!auth.currentUser || viewedProfileUid!==auth.currentUser.uid)return;
+  profileUploadTargetUid=auth.currentUser.uid;
+  $('profilePhotoInput').click();
+});
+
+$('individualAddStoryBtn').addEventListener('click',()=>{
+  if(!auth.currentUser || viewedProfileUid!==auth.currentUser.uid)return;
+  $('storyCameraInput').click();
+});
+
 function showAppPage(page){
+  if(page==='profile'){
+    const requested=sessionStorage.getItem('babyStepsProfileUid');
+    sessionStorage.removeItem('babyStepsProfileUid');
+    renderIndividualProfile(requested || auth.currentUser?.uid || DAD_UID);
+  }
   document.querySelectorAll('.app-page').forEach(el=>el.classList.toggle('active',el.dataset.page===page));
   document.querySelectorAll('.bottom-nav [data-page-target]').forEach(btn=>btn.classList.toggle('active',btn.dataset.pageTarget===page));
   window.scrollTo({top:0,behavior:'instant'});
@@ -1180,6 +1394,7 @@ function watchProfilePhoto(uid,imgId,fallbackId){
        homeImg.removeAttribute('src'); homeImg.hidden=true; homeFallback.hidden=false;
      }
    }
+   if(viewedProfileUid===uid) renderIndividualProfile(uid);
  },err=>console.error('Profile listener error:',err));
 }
 
@@ -1350,6 +1565,7 @@ function updateProfileStoryRings(){
    btn.setAttribute('aria-label',`${roleName(uid)} Story${hasUnseen?' — new':' — viewed'}`);
    if(homeBtn) homeBtn.setAttribute('aria-label',`${roleName(uid)} Story${hasUnseen?' — new':' — viewed'}`);
  });
+ if(viewedProfileUid) renderIndividualProfile(viewedProfileUid);
 }
 
 async function markStoryViewed(story){
