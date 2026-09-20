@@ -822,8 +822,18 @@
 .individual-posts-empty h3 { margin:4px 0; color:#714553; }
 .individual-posts-empty p { margin:4px auto 0; max-width:300px; font-size:.9rem; }
 
-</style></head>
+.post-modal-backdrop{position:fixed;inset:0;z-index:300;display:flex;align-items:center;justify-content:center;padding:18px;background:rgba(45,18,27,.46);backdrop-filter:blur(5px)}.post-modal-backdrop[hidden]{display:none!important}.post-modal{width:min(100%,430px);border-radius:24px;padding:20px;background:#fff8fa;border:1px solid #ead2d9;box-shadow:0 18px 55px rgba(48,20,29,.28)}.post-modal-head{display:flex;justify-content:space-between;gap:12px}.post-modal-head h2{margin:3px 0 12px}.post-modal-head button{width:36px!important;height:36px!important;padding:0!important;margin:0!important;border-radius:50%!important}#postCaptionInput{width:100%;min-height:110px;box-sizing:border-box;padding:13px;border-radius:15px;border:1px solid #dfc4cd;background:#fff;color:#583440;font:inherit;font-size:16px}#choosePostMediaBtn{width:100%!important;margin:10px 0 0!important}.post-modal-actions{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:15px}.post-modal-actions button{margin:0!important}#postMediaName,#postUploadStatus{font-size:.82rem;color:#815765}.profile-posts-list{display:grid;gap:14px;margin-top:16px}.profile-post{overflow:hidden;border-radius:18px;background:rgba(255,255,255,.72);border:1px solid #ead5dc}.profile-post-media{width:100%;display:block;max-height:480px;object-fit:cover;background:#25171c}.profile-post-body{padding:13px 14px}.profile-post-caption{margin:0;color:#593945;white-space:pre-wrap}.profile-post-meta{display:flex;justify-content:space-between;margin-top:8px;font-size:.76rem;color:#98717e}.profile-post-delete{width:auto!important;margin:0!important;padding:2px 0!important;border:0!important;background:transparent!important;box-shadow:none!important;color:#a05a70!important}</style></head>
 <body>
+<div id="createPostModal" class="post-modal-backdrop" hidden>
+<section class="post-modal">
+ <div class="post-modal-head"><div><b>NEW POST ♡</b><h2>Create Post</h2></div><button id="closeCreatePostBtn" type="button">×</button></div>
+ <textarea id="postCaptionInput" maxlength="500" placeholder="Write something about this moment..."></textarea>
+ <input id="postMediaInput" type="file" accept="image/*,video/*" hidden>
+ <button id="choosePostMediaBtn" class="secondary-btn" type="button">＋ Add photo or video</button>
+ <p id="postMediaName" hidden></p>
+ <div class="post-modal-actions"><button id="cancelCreatePostBtn" class="secondary-btn" type="button">Cancel</button><button id="publishPostBtn" type="button">Post ♡</button></div>
+ <p id="postUploadStatus"></p>
+</section></div>
 <div id="loginOverlay" class="login-overlay">
   <form id="loginForm" class="login-card">
     <h2>Welcome to Baby Steps ♡</h2>
@@ -1052,11 +1062,8 @@
       </div>
       <span class="individual-posts-icon">▣</span>
     </div>
-    <div class="individual-posts-empty">
-      <span>♡</span>
-      <h3>No posts yet</h3>
-      <p id="individualPostsEmptyText">Permanent moments will show here once we build Create Post.</p>
-    </div>
+    <div id="individualPostsList" class="profile-posts-list"></div>
+    <div id="individualPostsEmpty" class="individual-posts-empty"><span>♡</span><h3>No posts yet</h3><p id="individualPostsEmptyText">Permanent moments will show here.</p></div>
   </section>
 
   <div id="profilePageMount" class="legacy-profile-mount"></div>
@@ -1241,6 +1248,11 @@ function organizeAppPages(){
 }
 
 
+let selectedPostMedia=null,profilePosts=[],unsubProfilePosts=null;
+async function publishProfilePost(){if(!auth.currentUser)return;const caption=$('postCaptionInput').value.trim(),file=selectedPostMedia;if(!caption&&!file){alert('Add a message, photo, or video first ♡');return;}$('publishPostBtn').disabled=true;$('postUploadStatus').textContent=file?'Uploading your moment ♡':'Saving your post ♡';try{let mediaURL='',mediaType='',cloudinaryPublicId='';if(file){const fd=new FormData();fd.append('file',file);fd.append('upload_preset',CLOUDINARY_UPLOAD_PRESET);const res=await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/auto/upload`,{method:'POST',body:fd});const r=await res.json();if(!res.ok||!r.secure_url)throw new Error(r?.error?.message||'Upload failed');mediaURL=r.secure_url;mediaType=file.type.startsWith('video/')?'video':'image';cloudinaryPublicId=r.public_id||'';}await addDoc(collection(db,'posts'),{caption,mediaURL,mediaType,cloudinaryPublicId,createdBy:auth.currentUser.uid,createdAt:serverTimestamp()});$('postCaptionInput').value='';$('postMediaInput').value='';selectedPostMedia=null;$('postMediaName').hidden=true;$('postUploadStatus').textContent='';$('createPostModal').hidden=true;sessionStorage.setItem('babyStepsProfileUid',auth.currentUser.uid);showAppPage('profile');}catch(e){console.error(e);$('postUploadStatus').textContent='Could not publish the post ♡';}finally{$('publishPostBtn').disabled=false;}}
+function listenForProfilePosts(uid){if(unsubProfilePosts)unsubProfilePosts();const q=query(collection(db,'posts'),orderBy('createdAt','desc'));unsubProfilePosts=onSnapshot(q,snap=>{profilePosts=snap.docs.map(d=>({id:d.id,...d.data()})).filter(x=>x.createdBy===uid);renderProfilePosts(uid);},e=>{console.error(e);$('individualPostsEmpty').hidden=false;$('individualPostsEmptyText').textContent='Could not load posts ♡';});}
+function renderProfilePosts(uid){const list=$('individualPostsList'),empty=$('individualPostsEmpty');if(!list)return;list.innerHTML='';empty.hidden=profilePosts.length>0;if(!profilePosts.length){$('individualPostsEmptyText').textContent=`${profileDisplayName(uid)}'s permanent moments will show here.`;return;}profilePosts.forEach(post=>{const a=document.createElement('article');a.className='profile-post';if(post.mediaURL){const m=document.createElement(post.mediaType==='video'?'video':'img');m.className='profile-post-media';m.src=post.mediaURL;if(post.mediaType==='video'){m.controls=true;m.playsInline=true;m.preload='metadata';}else m.alt='Profile post';a.appendChild(m);}const b=document.createElement('div');b.className='profile-post-body';if(post.caption){const c=document.createElement('p');c.className='profile-post-caption';c.textContent=post.caption;b.appendChild(c);}const meta=document.createElement('div');meta.className='profile-post-meta';const d=document.createElement('span');d.textContent=post.createdAt?.toDate?post.createdAt.toDate().toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'}):'Just now';meta.appendChild(d);if(auth.currentUser?.uid===post.createdBy){const del=document.createElement('button');del.className='profile-post-delete';del.textContent='Delete';del.onclick=async()=>{if(confirm('Delete this post?'))await deleteDoc(doc(db,'posts',post.id));};meta.appendChild(del);}b.appendChild(meta);a.appendChild(b);list.appendChild(a);});}
+$('closeCreatePostBtn').onclick=()=>$('createPostModal').hidden=true;$('cancelCreatePostBtn').onclick=()=>$('createPostModal').hidden=true;$('choosePostMediaBtn').onclick=()=>$('postMediaInput').click();$('postMediaInput').onchange=e=>{const f=e.target.files?.[0];if(!f)return;if(f.type.startsWith('image/')&&f.size>12*1024*1024){alert('Please choose a photo under 12 MB ♡');e.target.value='';return;}if(f.type.startsWith('video/')&&f.size>40*1024*1024){alert('Please choose a video under 40 MB ♡');e.target.value='';return;}selectedPostMedia=f;$('postMediaName').textContent=f.name;$('postMediaName').hidden=false;};$('publishPostBtn').onclick=publishProfilePost;
 let viewedProfileUid=null;
 
 function profileDisplayName(uid){
@@ -1249,7 +1261,9 @@ function profileDisplayName(uid){
 
 function renderIndividualProfile(uid){
   if(!uid) uid=auth.currentUser?.uid || DAD_UID;
+  const profileChanged=viewedProfileUid!==uid;
   viewedProfileUid=uid;
+  if(profileChanged || !unsubProfilePosts) listenForProfilePosts(uid);
 
   const isOwn=!!auth.currentUser && auth.currentUser.uid===uid;
   const name=profileDisplayName(uid);
@@ -1609,7 +1623,8 @@ $('homeAddStoryBtn').addEventListener('click',()=>{
 $('homeCreatePostBtn').addEventListener('click',()=>{
   homeCreateMenu.hidden=true;
   homeCreateBtn.setAttribute('aria-expanded','false');
-  alert('Profile posts are coming next ♡');
+  $('createPostModal').hidden=false;
+  $('postCaptionInput').focus();
 });
 
 $('addStoryBtn').addEventListener('click',()=>{
