@@ -1175,6 +1175,7 @@ body.chat-open #usConversationView .chat-status{
       <button id="homeDadMessageBtn" class="dad-only" type="button" hidden><span>♡</span><div><b>Message for Microbia</b><small>Update her Home message</small></div></button>
       <button id="homeTestMorningBtn" class="dad-only" type="button" hidden><span>🎁</span><div><b>Test Morning Surprise</b><small>Preview Microbia’s daily surprise</small></div></button>
       <button id="homeManageSurprisesBtn" class="dad-only" type="button" hidden><span>✦</span><div><b>Morning Surprises</b><small>Add your own joke, quote, or love message</small></div></button>
+      <button id="homePreviewMicrobiaMorningBtn" class="dad-only" type="button" hidden><span>♡</span><div><b>Preview Microbia’s Morning</b><small>See exactly what she’ll see without using it</small></div></button>
     </div>
   </div>
   <section class="home-accounts" aria-label="Dad and Microbia">
@@ -1820,11 +1821,51 @@ function closeDailyDadReveal(){
  const el=$('dailyDadReveal');if(!el||el.hidden)return;
  if(el.dataset.testMode!=='true') localStorage.setItem(dailyDadRevealStorageKey(),'shown');
  el.classList.add('is-closing');
- setTimeout(()=>{el.hidden=true;el.setAttribute('aria-hidden','true');el.classList.remove('is-closing');delete el.dataset.testMode;delete el.dataset.forceMorningTest;delete el.dataset.testMorningType;},420);
+ setTimeout(()=>{el.hidden=true;el.setAttribute('aria-hidden','true');el.classList.remove('is-closing');delete el.dataset.testMode;delete el.dataset.forceMorningTest;delete el.dataset.testMorningType;delete el.dataset.microbiaPreview;},420);
 }
 $('dailyDadContinue').onclick=beginDailySurprise;
 $('dailyDadRevealClose').onclick=closeDailyDadReveal;
 
+
+function launchMicrobiaMorningPreview(){
+ const overlay=$('dailyDadReveal');
+ const seed=morningSeed();
+ const custom=chooseUnusedCustom(seed);
+ const selected=custom?{category:custom.category,text:custom.text,customId:custom.id}:builtInMorningPrize(seed);
+ const plan={
+  type:(seed%2===0?'gift':'scratch'),
+  category:selected.category,
+  prize:selected.text,
+  customId:selected.customId||null
+ };
+ activeMorningPlan=plan;
+
+ // Preview mode intentionally prevents Firestore completion writes and localStorage completion.
+ overlay.dataset.testMode='true';
+ overlay.dataset.microbiaPreview='true';
+
+ // Use the real current Dad message already synced to Home.
+ let msg=($('dadMessage').textContent||'').replace(/^“|”$/g,'').trim();
+ if(!msg) msg='A little something from Dad ♡';
+ $('dailyDadRevealText').textContent=msg;
+ $('dailyDadMessageStage').hidden=false;
+ $('dailySurpriseStage').hidden=true;
+ $('dailyGiftGame').hidden=true;
+ $('dailyScratchGame').hidden=true;
+ $('dailySurpriseResult').hidden=true;
+ $('dailyDadRevealClose').hidden=true;
+ overlay.hidden=false;overlay.setAttribute('aria-hidden','false');
+
+ $('dailyDadContinue').onclick=()=>{
+   $('dailyDadMessageStage').hidden=true;
+   $('dailySurpriseStage').hidden=false;
+   $('dailyGiftGame').hidden=plan.type!=='gift';
+   $('dailyScratchGame').hidden=plan.type!=='scratch';
+   $('dailySurpriseResult').hidden=true;
+   $('dailyDadRevealClose').hidden=true;
+   if(plan.type==='scratch') setupMorningScratch(plan);
+ };
+}
 
 function launchMorningSurpriseTest(){
  const overlay=$('dailyDadReveal');
@@ -1855,6 +1896,10 @@ function launchMorningSurpriseTest(){
  };
 }
 $('testMorningSurpriseBtn').onclick=launchMorningSurpriseTest;
+$('homePreviewMicrobiaMorningBtn').onclick=()=>{
+ $('homeCreateMenu').hidden=true;$('homeCreateBtn').setAttribute('aria-expanded','false');
+ launchMicrobiaMorningPreview();
+};
 $('homeTestMorningBtn').onclick=()=>{
  $('homeCreateMenu').hidden=true;$('homeCreateBtn').setAttribute('aria-expanded','false');
  launchMorningSurpriseTest();
