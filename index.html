@@ -1185,6 +1185,7 @@ body.chat-open #usConversationView .chat-status{
   <h3 id="dadMorningTitle">Her little surprise</h3>
   <p id="dadMorningDetails">Waiting for today’s surprise ♡</p>
   <small id="dadMorningTime"></small>
+  <button id="testMorningSurpriseBtn" type="button" style="margin-top:12px">Test Morning Surprise ♡</button>
 </section>
 <section id="page-memories" class="app-page" data-page="memories">
   <div class="page-heading"><b>OUR MEMORIES ♡</b><h2>Little moments, forever</h2><p>Milestones, photos, videos and saved Stories live here.</p></div>
@@ -1710,6 +1711,7 @@ function beginDailySurprise(){
  if(plan.type==='scratch') setupMorningScratch(plan.prize);
 }
 async function saveMorningInteraction(kind,choice,prize){
+ if($('dailyDadReveal')?.dataset.testMode==='true') return;
  try{
   await setDoc(doc(db,'morningInteractions',babyStepsLocalDayKey()),{
    date:babyStepsLocalDayKey(),type:kind,choice:choice||null,prize,completedBy:MICROBIA_UID,completedAt:serverTimestamp()
@@ -1744,12 +1746,27 @@ function setupMorningScratch(prize){
 }
 function closeDailyDadReveal(){
  const el=$('dailyDadReveal');if(!el||el.hidden)return;
- localStorage.setItem(dailyDadRevealStorageKey(),'shown');el.classList.add('is-closing');
- setTimeout(()=>{el.hidden=true;el.setAttribute('aria-hidden','true');el.classList.remove('is-closing');},420);
+ if(el.dataset.testMode!=='true') localStorage.setItem(dailyDadRevealStorageKey(),'shown');
+ el.classList.add('is-closing');
+ setTimeout(()=>{el.hidden=true;el.setAttribute('aria-hidden','true');el.classList.remove('is-closing');delete el.dataset.testMode;},420);
 }
 $('dailyDadContinue').onclick=beginDailySurprise;
 $('dailyDadRevealClose').onclick=closeDailyDadReveal;
 
+
+function launchMorningSurpriseTest(){
+ const overlay=$('dailyDadReveal');
+ $('dailyDadRevealText').textContent='This is a preview of Microbia’s morning experience ♡';
+ $('dailyDadMessageStage').hidden=false;
+ $('dailySurpriseStage').hidden=true;
+ $('dailyGiftGame').hidden=true;
+ $('dailyScratchGame').hidden=true;
+ $('dailySurpriseResult').hidden=true;
+ $('dailyDadRevealClose').hidden=true;
+ overlay.hidden=false;overlay.setAttribute('aria-hidden','false');
+ overlay.dataset.testMode='true';
+}
+$('testMorningSurpriseBtn').onclick=launchMorningSurpriseTest;
 
 let unsubMorningInteraction=null;
 function watchMorningInteraction(user){
@@ -1757,7 +1774,13 @@ function watchMorningInteraction(user){
  const card=$('dadMorningCard');if(!card)return;
  if(!user||user.uid!==DAD_UID){card.hidden=true;return;}
  unsubMorningInteraction=onSnapshot(doc(db,'morningInteractions',babyStepsLocalDayKey()),snap=>{
-  if(!snap.exists()){card.hidden=true;return;}
+  if(!snap.exists()){
+   card.hidden=false;
+   $('dadMorningTitle').textContent='Her little surprise';
+   $('dadMorningDetails').textContent='Waiting for Microbia to open today’s surprise ♡';
+   $('dadMorningTime').textContent='';
+   return;
+  }
   const d=snap.data();card.hidden=false;
   $('dadMorningTitle').textContent=d.type==='gift'?`🎁 She picked gift #${d.choice}`:'✨ She scratched today’s surprise';
   $('dadMorningDetails').textContent=d.prize||'She opened her morning surprise ♡';
