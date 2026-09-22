@@ -1,0 +1,156 @@
+name: Baby Steps Story Like Notifications
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "*/5 * * * *"
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Authenticate to Google Cloud
+        id: auth
+        uses: google-github-actions/auth@v3
+        with:
+          workload_identity_provider: projects/737826285998/locations/global/workloadIdentityPools/baby-steps-github/providers/github
+          service_account: firebase-adminsdk-fbsvc@baby-steps-2c470.iam.gserviceaccount.com
+          token_format: access_token
+
+      - name: Check Story likes and notify
+        env:
+          ACCESS_TOKEN: ${{ steps.auth.outputs.access_token }}
+          DAD_FCM_TOKEN: ${{ secrets.DAD_FCM_TOKEN }}
+          MICROBIA_FCM_TOKEN: ${{ secrets.MICROBIA_FCM_TOKEN }}
+          PROJECT_ID: baby-steps-2c470
+          DAD_UID: quwZWCn1IoUGT5NwEygn6eKCxTE3
+          MICROBIA_UID: nInC8S5RIogVUF8UYV7NrVHe6s52
+
+        run: |
+          set -euo pipefail
+
+          FIRESTORE="https://firestore.googleapis.com/v1/projects/${PROJECT_ID}/databases/(default)/documents"
+          FCM="https://fcm.googleapis.com/v1/projects/${PROJECT_ID}/messages:send"
+
+          # Read Stories.
+          QUERY=$(jq -n '{
+            structuredQuery: {
+              from: [{collectionId:"stories"}],
+              orderBy: [{
+                field:{fieldPath:"createdAt"},
+                direction:"DESCENDING"
+              }],
+              limit: 50
+            }
+          }')
+
+          RESPONSE=$(curl -sS -X POST \
+            -H "Authorization: Bearer ${ACCESS_TOKEN}" \
+            -H "Content-Type: application/json" \
+            "${FIRESTORE}:runQuery" \
+            -d "${QUERY}")
+
+          echo "${RESPONSE}" | jq -c \
+            '.[] | select(.document != null) | .document' |
+          while read -r DOC; do
+
+            NAME=$(echo "${DOC}" | jq -r '.name')
+            STORY_ID="${NAME##*/}"
+
+            OWNER=$(echo "${DOC}" | jq -r \
+              '.fields.createdBy.stringValue // ""')
+
+            LIKES=$(echo "${DOC}" | jq -c \
+              '[.fields.likes.arrayValue.values[]?.stringValue] // []')
+
+            # Dad Story → check whether Microbia liked it.
+            if [ "${OWNER}" = "${DAD_UID}" ]; then
+              LIKER="${MICROBIA_UID}"
+              LIKER_NAME="Microbia"
+              TOKEN="${DAD_FCM_TOKEN}"
+
+            # Microbia Story → check whether Dad liked it.
+            elif [ "${OWNER}" = "${MICROBIA_UID}" ]; then
+              LIKER="${DAD_UID}"
+              LIKER_NAME="Dad"
+              TOKEN="${MICROBIA_FCM_TOKEN}"
+
+            else
+              continue
+            fi
+
+            HAS_LIKE=$(echo "${LIKES}" |
+              jq --arg uid "${LIKER}" 'index($uid) != null')
+
+            [ "${HAS_LIKE}" = "true" ] || continue
+
+            STATE_ID="storyLike_${STORY_ID}_${LIKER}"
+
+            STATE=$(curl -sS \
+              -H "Authorization: Bearer ${ACCESS_TOKEN}" \
+              "${FIRESTORE}/notificationState/${STATE_ID}" || true)
+
+            ALREADY=$(echo "${STATE}" | jq -r \
+              '.fields.notified.booleanValue // false' \
+              2>/dev/null || true)
+
+            [ "${ALREADY}" = "true" ] && continue
+
+            PAYLOAD=$(jq -n \
+              --arg token "${TOKEN}" \
+              --arg title "Baby Steps ♡" \
+              --arg body "${LIKER_NAME} liked your Story ♡" \
+              '{
+                message: {
+                  token: $token,
+                  notification: {
+                    title: $title,
+                    body: $body
+                  },
+                  webpush: {
+                    fcm_options: {
+                      link: "https://leonardomedrano1416-ai.github.io/baby-steps/"
+                    }
+                  }
+                }
+              }')
+
+            curl -sS -f -X POST \
+              -H "Authorization: Bearer ${ACCESS_TOKEN}" \
+              -H "Content-Type: application/json" \
+              "${FCM}" \
+              -d "${PAYLOAD}"
+
+            STATE_PAYLOAD=$(jq -n \
+              --arg story "${STORY_ID}" \
+              --arg liker "${LIKER}" \
+              '{
+                fields: {
+                  notified: {
+                    booleanValue: true
+                  },
+                  storyId: {
+                    stringValue: $story
+                  },
+                  likerId: {
+                    stringValue: $liker
+                  },
+                  updatedAt: {
+                    timestampValue: (now | todate)
+                  }
+                }
+              }')
+
+            curl -sS -f -X PATCH \
+              -H "Authorization: Bearer ${ACCESS_TOKEN}" \
+              -H "Content-Type: application/json" \
+              "${FIRESTORE}/notificationState/${STATE_ID}" \
+              -d "${STATE_PAYLOAD}"
+
+            echo "Story-like notification sent for ${STORY_ID}."
+          done
