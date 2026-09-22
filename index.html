@@ -1692,7 +1692,8 @@ const morningPrizes=[
 ];
 function todayMorningPlan(){
  const seed=morningSeed();
- return {type:(seed%2===0?'gift':'scratch'), prize:morningPrizes[(seed>>>1)%morningPrizes.length]};
+ const forced=$('dailyDadReveal')?.dataset.forceMorningTest;
+ return {type:(forced==='scratch'||forced==='gift')?forced:(seed%2===0?'gift':'scratch'), prize:morningPrizes[(seed>>>1)%morningPrizes.length]};
 }
 async function maybeShowDailyDadReveal(user){
  if(!user||user.uid!==MICROBIA_UID||localStorage.getItem(dailyDadRevealStorageKey())==='shown')return;
@@ -1749,7 +1750,7 @@ function closeDailyDadReveal(){
  const el=$('dailyDadReveal');if(!el||el.hidden)return;
  if(el.dataset.testMode!=='true') localStorage.setItem(dailyDadRevealStorageKey(),'shown');
  el.classList.add('is-closing');
- setTimeout(()=>{el.hidden=true;el.setAttribute('aria-hidden','true');el.classList.remove('is-closing');delete el.dataset.testMode;},420);
+ setTimeout(()=>{el.hidden=true;el.setAttribute('aria-hidden','true');el.classList.remove('is-closing');delete el.dataset.testMode;delete el.dataset.forceMorningTest;},420);
 }
 $('dailyDadContinue').onclick=beginDailySurprise;
 $('dailyDadRevealClose').onclick=closeDailyDadReveal;
@@ -1757,6 +1758,7 @@ $('dailyDadRevealClose').onclick=closeDailyDadReveal;
 
 function launchMorningSurpriseTest(){
  const overlay=$('dailyDadReveal');
+ overlay.dataset.forceMorningTest='scratch';
  $('dailyDadRevealText').textContent='This is a preview of Microbia’s morning experience ♡';
  $('dailyDadMessageStage').hidden=false;
  $('dailySurpriseStage').hidden=true;
