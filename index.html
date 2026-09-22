@@ -8,7 +8,6 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Baby Steps">
 <link rel="manifest" href="manifest.webmanifest">
-<link rel="apple-touch-icon" sizes="180x180" href="baby-steps-icon.png">
 <link rel="stylesheet" href="styles.css?v=6.1">
 <title>Baby Steps</title>
 <style>
@@ -922,7 +921,7 @@ body.chat-open #usConversationView .chat-form{
 body.chat-open #usConversationView .chat-status{
   display:none!important;
 }
-</style></head>
+.daily-dad-reveal{position:fixed;inset:0;z-index:9998;display:flex;align-items:center;justify-content:center;padding:24px;background:rgba(49,16,28,.58);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);overflow:hidden}.daily-dad-reveal[hidden]{display:none!important}.daily-dad-glow{position:absolute;width:320px;height:320px;border-radius:50%;background:rgba(255,183,207,.28);filter:blur(45px);animation:dadGlow 2.2s ease-in-out infinite alternate}.daily-dad-card{position:relative;width:min(88vw,390px);padding:30px 24px 24px;border:1px solid rgba(255,255,255,.7);border-radius:28px;background:linear-gradient(155deg,rgba(255,250,252,.97),rgba(255,230,239,.96));box-shadow:0 24px 70px rgba(57,13,29,.34);text-align:center;animation:dadCardIn .9s cubic-bezier(.2,.9,.2,1.15) both}.daily-dad-heart{width:58px;height:58px;margin:-5px auto 13px;border-radius:50%;display:grid;place-items:center;background:#7d2944;color:#fff;font-size:32px;box-shadow:0 0 0 8px rgba(125,41,68,.09);animation:dadHeart 1.35s ease-in-out infinite}.daily-dad-kicker{margin:0 0 7px!important;font-size:.69rem!important;font-weight:800;letter-spacing:.15em;color:#a45b72}.daily-dad-card h2{margin:0 0 16px;color:#64233a;font-family:Georgia,serif;font-size:1.65rem}.daily-dad-text{margin:0 auto 22px!important;max-height:35vh;overflow-y:auto;font-family:Georgia,serif;font-size:1.05rem!important;line-height:1.65!important;color:#5d3a46;white-space:pre-wrap}.daily-dad-card button{width:100%;margin:0!important;padding:13px 18px!important;border-radius:999px!important}.daily-dad-sparkles span{position:absolute;bottom:-40px;color:#ffd4e2;text-shadow:0 0 12px rgba(255,255,255,.7);font-size:22px;opacity:0;animation:dadFloat 4.2s linear infinite}.daily-dad-sparkles span:nth-child(1){left:9%;animation-delay:.1s}.daily-dad-sparkles span:nth-child(2){left:24%;animation-delay:1.1s;font-size:16px}.daily-dad-sparkles span:nth-child(3){left:43%;animation-delay:2.1s;font-size:27px}.daily-dad-sparkles span:nth-child(4){left:61%;animation-delay:.7s;font-size:17px}.daily-dad-sparkles span:nth-child(5){left:77%;animation-delay:2.8s}.daily-dad-sparkles span:nth-child(6){left:90%;animation-delay:1.7s;font-size:15px}.daily-dad-reveal.is-closing{animation:dadRevealOut .42s ease both}.daily-dad-reveal.is-closing .daily-dad-card{animation:dadCardOut .42s ease both}@keyframes dadCardIn{0%{opacity:0;transform:translateY(35px) scale(.78) rotate(-2deg)}60%{opacity:1;transform:translateY(-5px) scale(1.03) rotate(.5deg)}100%{opacity:1;transform:none}}@keyframes dadHeart{50%{transform:scale(1.12);box-shadow:0 0 0 13px rgba(125,41,68,.05)}}@keyframes dadGlow{to{transform:scale(1.22);opacity:.72}}@keyframes dadFloat{0%{transform:translateY(0);opacity:0}15%{opacity:.9}85%{opacity:.65}100%{transform:translateY(-110vh) rotate(110deg);opacity:0}}@keyframes dadRevealOut{to{opacity:0}}@keyframes dadCardOut{to{opacity:0;transform:translateY(22px) scale(.92)}}@media(prefers-reduced-motion:reduce){.daily-dad-reveal *{animation:none!important}}</style></head>
 <body>
 <div id="postDetailModal" class="post-detail-backdrop" hidden>
   <section class="post-detail-modal" role="dialog" aria-modal="true" aria-label="Post">
@@ -959,6 +958,17 @@ body.chat-open #usConversationView .chat-status{
  <div class="post-modal-actions"><button id="cancelCreatePostBtn" class="secondary-btn" type="button">Cancel</button><button id="publishPostBtn" type="button">Post ♡</button></div>
  <p id="postUploadStatus"></p>
 </section></div>
+<div id="dailyDadReveal" class="daily-dad-reveal" hidden aria-hidden="true">
+  <div class="daily-dad-glow"></div>
+  <div class="daily-dad-sparkles" aria-hidden="true"><span>♡</span><span>✦</span><span>♡</span><span>✧</span><span>♡</span><span>✦</span></div>
+  <section class="daily-dad-card" role="dialog" aria-modal="true" aria-labelledby="dailyDadTitle">
+    <div class="daily-dad-heart">♡</div>
+    <p class="daily-dad-kicker">A LITTLE SOMETHING FROM DAD</p>
+    <h2 id="dailyDadTitle">For you, Microbia ♡</h2>
+    <p id="dailyDadRevealText" class="daily-dad-text"></p>
+    <button id="dailyDadRevealClose" type="button">♡ Start my day</button>
+  </section>
+</div>
 <div id="loginOverlay" class="login-overlay">
   <form id="loginForm" class="login-card">
     <h2>Welcome to Baby Steps ♡</h2>
@@ -1598,10 +1608,32 @@ async function startPrenatalCalendar(){
 $('prenatalPrevMonth').onclick=()=>{prenatalCalendarCursor=new Date(prenatalCalendarCursor.getFullYear(),prenatalCalendarCursor.getMonth()-1,1);renderPrenatalCalendar();};
 $('prenatalNextMonth').onclick=()=>{const n=new Date(prenatalCalendarCursor.getFullYear(),prenatalCalendarCursor.getMonth()+1,1),c=new Date();c.setDate(1);c.setHours(0,0,0,0);if(n<=c){prenatalCalendarCursor=n;renderPrenatalCalendar();}};
 
+function babyStepsLocalDayKey(){
+ const parts=new Intl.DateTimeFormat('en-CA',{timeZone:'America/Chicago',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date());
+ const get=t=>parts.find(p=>p.type===t)?.value||'';
+ return `${get('year')}-${get('month')}-${get('day')}`;
+}
+function dailyDadRevealStorageKey(){return `babyStepsDadReveal:${MICROBIA_UID}:${babyStepsLocalDayKey()}`;}
+async function maybeShowDailyDadReveal(user){
+ if(!user||user.uid!==MICROBIA_UID||localStorage.getItem(dailyDadRevealStorageKey())==='shown')return;
+ try{
+  const snap=await getDoc(doc(db,'shared','dadMessage')); if(!snap.exists())return;
+  const message=(snap.data()?.text||'').trim(); if(!message)return;
+  $('dailyDadRevealText').textContent=message;
+  $('dailyDadReveal').hidden=false; $('dailyDadReveal').setAttribute('aria-hidden','false');
+ }catch(e){console.warn('Daily Dad reveal:',e);}
+}
+function closeDailyDadReveal(){
+ const el=$('dailyDadReveal'); if(!el||el.hidden)return;
+ localStorage.setItem(dailyDadRevealStorageKey(),'shown'); el.classList.add('is-closing');
+ setTimeout(()=>{el.hidden=true;el.setAttribute('aria-hidden','true');el.classList.remove('is-closing');},420);
+}
+$('dailyDadRevealClose').onclick=closeDailyDadReveal;
+
 onAuthStateChanged(auth,user=>{
  if(unsubPrenatalHistory) { unsubPrenatalHistory(); unsubPrenatalHistory=null; } if(unsubMessage) unsubMessage(); if(unsubPrenatal) unsubPrenatal(); if(unsubPregnancy) unsubPregnancy(); if(unsubMilestones) unsubMilestones(); if(unsubAppointments) unsubAppointments(); if(unsubDadProfile) unsubDadProfile(); if(unsubMicrobiaProfile) unsubMicrobiaProfile(); if(unsubStories) unsubStories(); if(unsubStoryViews) unsubStoryViews(); if(unsubChat) unsubChat();
  if(!user){ $('loginOverlay').hidden=false; $('signedInAs').textContent=''; $('syncStatus').textContent='Signed out'; return; }
- $('loginOverlay').hidden=true; startPrenatalCalendar(); const isDad=user.uid===DAD_UID; updateUsConversationPerson(); $('signedInAs').textContent=isDad?'Dad':'Microbia'; $('syncStatus').textContent='Synced ♡'; $('roleGreeting').innerHTML=isDad?'Hey,<em>Dad ♡</em>':'Good morning,<em>Microbia ♡</em>'; 
+ $('loginOverlay').hidden=true; startPrenatalCalendar(); const isDad=user.uid===DAD_UID; updateUsConversationPerson(); setTimeout(()=>maybeShowDailyDadReveal(user),350); $('signedInAs').textContent=isDad?'Dad':'Microbia'; $('syncStatus').textContent='Synced ♡'; $('roleGreeting').innerHTML=isDad?'Hey,<em>Dad ♡</em>':'Good morning,<em>Microbia ♡</em>'; 
  document.querySelector('.dad-only').hidden=!isDad;
  unsubDadProfile=watchProfilePhoto(DAD_UID,'dadProfileImg','dadProfileFallback');
  unsubMicrobiaProfile=watchProfilePhoto(MICROBIA_UID,'microbiaProfileImg','microbiaProfileFallback');
