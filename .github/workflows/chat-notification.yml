@@ -1,0 +1,155 @@
+name: Baby Steps Chat Notifications
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "*/5 * * * *"
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Authenticate to Google Cloud
+        id: auth
+        uses: google-github-actions/auth@v3
+        with:
+          workload_identity_provider: projects/737826285998/locations/global/workloadIdentityPools/baby-steps-github/providers/github
+          service_account: firebase-adminsdk-fbsvc@baby-steps-2c470.iam.gserviceaccount.com
+          token_format: access_token
+
+      - name: Check newest chat message and notify
+        env:
+          ACCESS_TOKEN: ${{ steps.auth.outputs.access_token }}
+          DAD_FCM_TOKEN: ${{ secrets.DAD_FCM_TOKEN }}
+          MICROBIA_FCM_TOKEN: ${{ secrets.MICROBIA_FCM_TOKEN }}
+          PROJECT_ID: baby-steps-2c470
+          DAD_UID: quwZWCn1IoUGT5NwEygn6eKCxTE3
+          MICROBIA_UID: nInC8S5RIogVUF8UYV7NrVHe6s52
+
+        run: |
+          set -euo pipefail
+
+          FIRESTORE="https://firestore.googleapis.com/v1/projects/${PROJECT_ID}/databases/(default)/documents"
+          FCM="https://fcm.googleapis.com/v1/projects/${PROJECT_ID}/messages:send"
+
+          QUERY=$(jq -n '{
+            structuredQuery: {
+              from: [{collectionId:"chatMessages"}],
+              orderBy: [{field:{fieldPath:"createdAt"}, direction:"DESCENDING"}],
+              limit: 1
+            }
+          }')
+
+          RESPONSE=$(curl -sS -X POST \
+            -H "Authorization: Bearer ${ACCESS_TOKEN}" \
+            -H "Content-Type: application/json" \
+            "${FIRESTORE}:runQuery" \
+            -d "${QUERY}")
+
+          DOC=$(echo "${RESPONSE}" | jq -c \
+            '[.[] | select(.document != null)][0].document // empty')
+
+          if [ -z "${DOC}" ]; then
+            echo "No chat messages found."
+            exit 0
+          fi
+
+          MESSAGE_NAME=$(echo "${DOC}" | jq -r '.name')
+          MESSAGE_ID="${MESSAGE_NAME##*/}"
+          SENDER_ID=$(echo "${DOC}" | jq -r \
+            '.fields.senderId.stringValue // ""')
+          TEXT=$(echo "${DOC}" | jq -r \
+            '.fields.text.stringValue // ""')
+          MEDIA_TYPE=$(echo "${DOC}" | jq -r \
+            '.fields.mediaType.stringValue // ""')
+
+          STATE=$(curl -sS \
+            -H "Authorization: Bearer ${ACCESS_TOKEN}" \
+            "${FIRESTORE}/notificationState/chatMessage" || true)
+
+          LAST_ID=$(echo "${STATE}" | jq -r \
+            '.fields.lastNotifiedMessageId.stringValue // ""' \
+            2>/dev/null || true)
+
+          if [ "${MESSAGE_ID}" = "${LAST_ID}" ]; then
+            echo "Newest message was already notified."
+            exit 0
+          fi
+
+          if [ "${SENDER_ID}" = "${DAD_UID}" ]; then
+            RECIPIENT_TOKEN="${MICROBIA_FCM_TOKEN}"
+            SENDER_NAME="Dad ♡"
+          elif [ "${SENDER_ID}" = "${MICROBIA_UID}" ]; then
+            RECIPIENT_TOKEN="${DAD_FCM_TOKEN}"
+            SENDER_NAME="Microbia ♡"
+          else
+            echo "Unknown sender."
+            exit 0
+          fi
+
+          if [ -n "${TEXT}" ]; then
+            BODY="${TEXT}"
+          elif [ "${MEDIA_TYPE}" = "video" ]; then
+            BODY="Sent you a video ♡"
+          elif [ "${MEDIA_TYPE}" = "image" ]; then
+            BODY="Sent you a photo ♡"
+          else
+            BODY="Sent you a message ♡"
+          fi
+
+          BODY=$(printf '%s' "${BODY}" | head -c 120)
+
+          PAYLOAD=$(jq -n \
+            --arg token "${RECIPIENT_TOKEN}" \
+            --arg title "${SENDER_NAME}" \
+            --arg body "${BODY}" \
+            '{
+              message: {
+                token: $token,
+                notification: {
+                  title: $title,
+                  body: $body
+                },
+                webpush: {
+                  fcm_options: {
+                    link: "https://leonardomedrano1416-ai.github.io/baby-steps/"
+                  }
+                }
+              }
+            }')
+
+          curl -sS -f -X POST \
+            -H "Authorization: Bearer ${ACCESS_TOKEN}" \
+            -H "Content-Type: application/json" \
+            "${FCM}" \
+            -d "${PAYLOAD}"
+
+          STATE_PAYLOAD=$(jq -n \
+            --arg id "${MESSAGE_ID}" \
+            --arg sender "${SENDER_ID}" \
+            '{
+              fields: {
+                lastNotifiedMessageId: {
+                  stringValue: $id
+                },
+                lastSenderId: {
+                  stringValue: $sender
+                },
+                updatedAt: {
+                  timestampValue: (now | todate)
+                }
+              }
+            }')
+
+          curl -sS -f -X PATCH \
+            -H "Authorization: Bearer ${ACCESS_TOKEN}" \
+            -H "Content-Type: application/json" \
+            "${FIRESTORE}/notificationState/chatMessage" \
+            -d "${STATE_PAYLOAD}"
+
+          echo "Chat notification sent successfully."
