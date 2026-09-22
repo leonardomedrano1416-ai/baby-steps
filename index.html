@@ -1701,6 +1701,7 @@ async function maybeShowDailyDadReveal(user){
   const snap=await getDoc(doc(db,'shared','dadMessage')); if(!snap.exists())return;
   const message=(snap.data()?.text||'').trim(); if(!message)return;
   $('dailyDadRevealText').textContent=message;
+  $('dailyDadContinue').onclick=beginDailySurprise;
   $('dailyDadMessageStage').hidden=false;$('dailySurpriseStage').hidden=true;
   $('dailyDadReveal').hidden=false;$('dailyDadReveal').setAttribute('aria-hidden','false');
  }catch(e){console.warn('Daily Dad reveal:',e);}
@@ -1758,7 +1759,9 @@ $('dailyDadRevealClose').onclick=closeDailyDadReveal;
 
 function launchMorningSurpriseTest(){
  const overlay=$('dailyDadReveal');
- overlay.dataset.forceMorningTest='scratch';
+ const seed=morningSeed();
+ const prize=morningPrizes[(seed>>>1)%morningPrizes.length];
+ overlay.dataset.testMode='true';
  $('dailyDadRevealText').textContent='This is a preview of Microbia’s morning experience ♡';
  $('dailyDadMessageStage').hidden=false;
  $('dailySurpriseStage').hidden=true;
@@ -1767,7 +1770,17 @@ function launchMorningSurpriseTest(){
  $('dailySurpriseResult').hidden=true;
  $('dailyDadRevealClose').hidden=true;
  overlay.hidden=false;overlay.setAttribute('aria-hidden','false');
- overlay.dataset.testMode='true';
+
+ // Dad's preview directly opens Scratch Reveal; it never uses the real daily chooser.
+ $('dailyDadContinue').onclick=()=>{
+   $('dailyDadMessageStage').hidden=true;
+   $('dailySurpriseStage').hidden=false;
+   $('dailyGiftGame').hidden=true;
+   $('dailyScratchGame').hidden=false;
+   $('dailySurpriseResult').hidden=true;
+   $('dailyDadRevealClose').hidden=true;
+   setupMorningScratch(prize);
+ };
 }
 $('testMorningSurpriseBtn').onclick=launchMorningSurpriseTest;
 $('homeTestMorningBtn').onclick=()=>{
