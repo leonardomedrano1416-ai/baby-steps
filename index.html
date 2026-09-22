@@ -1156,6 +1156,7 @@ body.chat-open #usConversationView .chat-status{
       <button id="homeAddStoryBtn" type="button"><span>◎</span><div><b>Add Story</b><small>Share a photo or video</small></div></button>
       <button id="homeCreatePostBtn" type="button"><span>▣</span><div><b>Create Post</b><small>Share a permanent moment ♡</small></div></button>
       <button id="homeDadMessageBtn" class="dad-only" type="button" hidden><span>♡</span><div><b>Message for Microbia</b><small>Update her Home message</small></div></button>
+      <button id="homeTestMorningBtn" class="dad-only" type="button" hidden><span>🎁</span><div><b>Test Morning Surprise</b><small>Preview Microbia’s daily surprise</small></div></button>
     </div>
   </div>
   <section class="home-accounts" aria-label="Dad and Microbia">
@@ -1767,6 +1768,10 @@ function launchMorningSurpriseTest(){
  overlay.dataset.testMode='true';
 }
 $('testMorningSurpriseBtn').onclick=launchMorningSurpriseTest;
+$('homeTestMorningBtn').onclick=()=>{
+ $('homeCreateMenu').hidden=true;$('homeCreateBtn').setAttribute('aria-expanded','false');
+ launchMorningSurpriseTest();
+};
 
 let unsubMorningInteraction=null;
 function watchMorningInteraction(user){
@@ -1792,7 +1797,7 @@ onAuthStateChanged(auth,user=>{
  if(unsubPrenatalHistory) { unsubPrenatalHistory(); unsubPrenatalHistory=null; } if(unsubMessage) unsubMessage(); if(unsubPrenatal) unsubPrenatal(); if(unsubPregnancy) unsubPregnancy(); if(unsubMilestones) unsubMilestones(); if(unsubAppointments) unsubAppointments(); if(unsubDadProfile) unsubDadProfile(); if(unsubMicrobiaProfile) unsubMicrobiaProfile(); if(unsubStories) unsubStories(); if(unsubStoryViews) unsubStoryViews(); if(unsubChat) unsubChat();
  if(!user){ $('loginOverlay').hidden=false; $('signedInAs').textContent=''; $('syncStatus').textContent='Signed out'; return; }
  $('loginOverlay').hidden=true; startPrenatalCalendar(); const isDad=user.uid===DAD_UID; updateUsConversationPerson(); setTimeout(()=>maybeShowDailyDadReveal(user),350); watchMorningInteraction(user); $('signedInAs').textContent=isDad?'Dad':'Microbia'; $('syncStatus').textContent='Synced ♡'; $('roleGreeting').innerHTML=isDad?'Hey,<em>Dad ♡</em>':'Good morning,<em>Microbia ♡</em>'; 
- document.querySelector('.dad-only').hidden=!isDad;
+ document.querySelectorAll('.dad-only').forEach(el=>el.hidden=!isDad);
  unsubDadProfile=watchProfilePhoto(DAD_UID,'dadProfileImg','dadProfileFallback');
  unsubMicrobiaProfile=watchProfilePhoto(MICROBIA_UID,'microbiaProfileImg','microbiaProfileFallback');
  unsubStories=onSnapshot(query(collection(db,'stories'),orderBy('createdAt','asc')),snap=>renderStories(snap));
