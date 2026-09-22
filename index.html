@@ -2632,9 +2632,16 @@ $('saveCustomSurpriseBtn').onclick=async()=>{
  if(!text){$('customSurpriseStatus').textContent='Write your surprise first ♡';return;}
  $('saveCustomSurpriseBtn').disabled=true;$('customSurpriseStatus').textContent='Saving…';
  try{
-  await addDoc(collection(db,'dadSurprises'),{
+  const savedRef=await addDoc(collection(db,'dadSurprises'),{
    category:selectedCustomCategory,text,used:false,createdBy:DAD_UID,createdAt:serverTimestamp()
   });
+  // Update Dad's private waiting list immediately instead of waiting for the snapshot refresh.
+  if(!customMorningSurprises.some(x=>x.id===savedRef.id)){
+   customMorningSurprises.unshift({
+    id:savedRef.id,category:selectedCustomCategory,text,used:false,createdBy:DAD_UID
+   });
+  }
+  renderCustomSurprises();
   $('customSurpriseText').value='';$('customSurpriseStatus').textContent='Saved secretly for Microbia ♡';
  }catch(e){$('customSurpriseStatus').textContent='Could not save. Try again ♡';console.warn(e);}
  finally{$('saveCustomSurpriseBtn').disabled=false;}
