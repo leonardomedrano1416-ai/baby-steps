@@ -1769,7 +1769,14 @@ async function maybeShowDailyDadReveal(user){
   $('dailyDadReveal').hidden=false;$('dailyDadReveal').setAttribute('aria-hidden','false');
  }catch(e){console.warn('Daily Dad reveal:',e);}
 }
+function resetMorningGiftButtons(){
+ document.querySelectorAll('.daily-gift').forEach(b=>{
+  b.classList.remove('opened','not-picked');
+  b.disabled=false;
+ });
+}
 function beginDailySurprise(){
+ resetMorningGiftButtons();
  $('dailyDadMessageStage').hidden=true;$('dailySurpriseStage').hidden=false;
  const plan=todayMorningPlan();activeMorningPlan=plan;
  $('dailyGiftGame').hidden=plan.type!=='gift';$('dailyScratchGame').hidden=plan.type!=='scratch';
@@ -1828,6 +1835,7 @@ $('dailyDadRevealClose').onclick=closeDailyDadReveal;
 
 
 function launchMicrobiaMorningPreview(){
+ resetMorningGiftButtons();
  const overlay=$('dailyDadReveal');
  const seed=morningSeed();
  const custom=chooseUnusedCustom(seed);
@@ -1868,6 +1876,7 @@ function launchMicrobiaMorningPreview(){
 }
 
 function launchMorningSurpriseTest(){
+ resetMorningGiftButtons();
  const overlay=$('dailyDadReveal');
  const selected=morningPrizes[Math.floor(Math.random()*morningPrizes.length)];
  const testType=(Math.random()<0.5?'gift':'scratch');
