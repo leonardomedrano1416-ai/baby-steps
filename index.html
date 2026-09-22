@@ -1742,7 +1742,7 @@ function setupMorningScratch(prize){
   if(!drawing||scratchDone)return;e.preventDefault();const r=c.getBoundingClientRect(),p=e.touches?e.touches[0]:e;
   const x=(p.clientX-r.left)*(c.width/r.width),y=(p.clientY-r.top)*(c.height/r.height);
   ctx.globalCompositeOperation='destination-out';ctx.beginPath();ctx.arc(x,y,42,0,Math.PI*2);ctx.fill();moves++;
-  if(moves>=24){scratchDone=true;c.style.transition='opacity .45s';c.style.opacity='0';setTimeout(()=>{c.style.pointerEvents='none';showMorningResult(prize);},430);saveMorningInteraction('scratch','scratched',prize);}
+  if(moves>=75){scratchDone=true;c.style.transition='opacity .45s';c.style.opacity='0';setTimeout(()=>{c.style.pointerEvents='none';showMorningResult(prize);},430);saveMorningInteraction('scratch','scratched',prize);}
  };
  c.style.opacity='1';c.style.pointerEvents='auto';
  c.onpointerdown=e=>{drawing=true;scratch(e)};c.onpointermove=scratch;c.onpointerup=c.onpointercancel=()=>drawing=false;
@@ -1751,7 +1751,7 @@ function closeDailyDadReveal(){
  const el=$('dailyDadReveal');if(!el||el.hidden)return;
  if(el.dataset.testMode!=='true') localStorage.setItem(dailyDadRevealStorageKey(),'shown');
  el.classList.add('is-closing');
- setTimeout(()=>{el.hidden=true;el.setAttribute('aria-hidden','true');el.classList.remove('is-closing');delete el.dataset.testMode;delete el.dataset.forceMorningTest;},420);
+ setTimeout(()=>{el.hidden=true;el.setAttribute('aria-hidden','true');el.classList.remove('is-closing');delete el.dataset.testMode;delete el.dataset.forceMorningTest;delete el.dataset.testMorningType;},420);
 }
 $('dailyDadContinue').onclick=beginDailySurprise;
 $('dailyDadRevealClose').onclick=closeDailyDadReveal;
@@ -1761,7 +1761,10 @@ function launchMorningSurpriseTest(){
  const overlay=$('dailyDadReveal');
  const seed=morningSeed();
  const prize=morningPrizes[(seed>>>1)%morningPrizes.length];
+ const testType=(Math.random()<0.5?'gift':'scratch');
+
  overlay.dataset.testMode='true';
+ overlay.dataset.testMorningType=testType;
  $('dailyDadRevealText').textContent='This is a preview of Microbia’s morning experience ♡';
  $('dailyDadMessageStage').hidden=false;
  $('dailySurpriseStage').hidden=true;
@@ -1771,15 +1774,14 @@ function launchMorningSurpriseTest(){
  $('dailyDadRevealClose').hidden=true;
  overlay.hidden=false;overlay.setAttribute('aria-hidden','false');
 
- // Dad's preview directly opens Scratch Reveal; it never uses the real daily chooser.
  $('dailyDadContinue').onclick=()=>{
    $('dailyDadMessageStage').hidden=true;
    $('dailySurpriseStage').hidden=false;
-   $('dailyGiftGame').hidden=true;
-   $('dailyScratchGame').hidden=false;
+   $('dailyGiftGame').hidden=testType!=='gift';
+   $('dailyScratchGame').hidden=testType!=='scratch';
    $('dailySurpriseResult').hidden=true;
    $('dailyDadRevealClose').hidden=true;
-   setupMorningScratch(prize);
+   if(testType==='scratch') setupMorningScratch(prize);
  };
 }
 $('testMorningSurpriseBtn').onclick=launchMorningSurpriseTest;
