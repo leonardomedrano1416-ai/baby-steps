@@ -1779,9 +1779,12 @@ async function refreshUnusedDadSurprises(){
   return customMorningSurprises.filter(x=>x.used!==true);
  }
 }
-function planFromUnusedCustom(unused){
- const seed=morningSeed();
- // Dad-created surprises always take priority. Pick the first waiting Firestore item.
+async function await planFromUnusedCustom(unused){
+ const resetVersion=await currentMorningResetVersion();
+ // Mix the reset counter into today's seed. Every reset advances to a different
+ // built-in message while keeping normal one-surprise-per-day behavior.
+ const seed=(morningSeed() + (resetVersion * 2654435761)) >>> 0;
+ // Dad-created surprises still take priority.
  const custom=Array.isArray(unused)&&unused.length?unused[0]:null;
  const selected=custom?{category:custom.category,text:custom.text,customId:custom.id}:builtInMorningPrize(seed);
  return {
@@ -1828,7 +1831,7 @@ async function beginDailySurprise(){
  const unused=await refreshUnusedDadSurprises();
  resetMorningGiftButtons();
  $('dailyDadMessageStage').hidden=true;$('dailySurpriseStage').hidden=false;
- const plan=planFromUnusedCustom(unused);activeMorningPlan=plan;
+ const plan=await planFromUnusedCustom(unused);activeMorningPlan=plan;
  $('dailyGiftGame').hidden=plan.type!=='gift';$('dailyScratchGame').hidden=plan.type!=='scratch';
  $('dailySurpriseResult').hidden=true;$('dailyDadRevealClose').hidden=true;
  if(plan.type==='scratch') setupMorningScratch(plan);
@@ -1890,7 +1893,7 @@ async function launchMicrobiaMorningPreview(){
  const unused=await refreshUnusedDadSurprises();
  resetMorningGiftButtons();
  const overlay=$('dailyDadReveal');
- const plan=planFromUnusedCustom(unused);
+ const plan=await planFromUnusedCustom(unused);
  activeMorningPlan=plan;
 
  // Preview mode intentionally prevents Firestore completion writes and localStorage completion.
@@ -2782,7 +2785,7 @@ $('profilePreviewTodaySurpriseBtn').onclick=async()=>{
  btn.disabled=true; btn.textContent='Loading today’s message…';
  try{
   const unused=await refreshUnusedDadSurprises();
-  const plan=planFromUnusedCustom(unused);
+  const plan=await planFromUnusedCustom(unused);
   $('profileTodaySurpriseCategory').textContent=categoryLabel(plan.category);
   $('profileTodaySurpriseText').textContent=plan.prize;
   $('profileTodaySurprisePreview').hidden=false;
