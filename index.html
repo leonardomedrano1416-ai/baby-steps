@@ -1752,10 +1752,26 @@ function chooseUnusedCustom(seed){
 async function refreshUnusedDadSurprises(){
  try{
   const snap=await getDocs(collection(db,'dadSurprises'));
-  customMorningSurprises=snap.docs.map(d=>({id:d.id,...d.data()}));
+  const all=snap.docs.map(d=>({id:d.id,...d.data()}));
+  customMorningSurprises=all;
   renderCustomSurprises();
- }catch(e){console.warn('Could not refresh Dad surprises:',e);}
- return customMorningSurprises.filter(x=>!x.used);
+  return all.filter(x=>x.used!==true);
+ }catch(e){
+  console.warn('Could not refresh Dad surprises:',e);
+  return customMorningSurprises.filter(x=>x.used!==true);
+ }
+}
+function planFromUnusedCustom(unused){
+ const seed=morningSeed();
+ // Dad-created surprises always take priority. Pick the first waiting Firestore item.
+ const custom=Array.isArray(unused)&&unused.length?unused[0]:null;
+ const selected=custom?{category:custom.category,text:custom.text,customId:custom.id}:builtInMorningPrize(seed);
+ return {
+  type:(seed%2===0?'gift':'scratch'),
+  category:selected.category,
+  prize:selected.text,
+  customId:selected.customId||null
+ };
 }
 function todayMorningPlan(){
  const seed=morningSeed();
@@ -1787,10 +1803,10 @@ function resetMorningGiftButtons(){
  });
 }
 async function beginDailySurprise(){
- await refreshUnusedDadSurprises();
+ const unused=await refreshUnusedDadSurprises();
  resetMorningGiftButtons();
  $('dailyDadMessageStage').hidden=true;$('dailySurpriseStage').hidden=false;
- const plan=todayMorningPlan();activeMorningPlan=plan;
+ const plan=planFromUnusedCustom(unused);activeMorningPlan=plan;
  $('dailyGiftGame').hidden=plan.type!=='gift';$('dailyScratchGame').hidden=plan.type!=='scratch';
  $('dailySurpriseResult').hidden=true;$('dailyDadRevealClose').hidden=true;
  if(plan.type==='scratch') setupMorningScratch(plan);
@@ -1849,18 +1865,10 @@ $('dailyDadRevealClose').onclick=closeDailyDadReveal;
 
 
 async function launchMicrobiaMorningPreview(){
- await refreshUnusedDadSurprises();
+ const unused=await refreshUnusedDadSurprises();
  resetMorningGiftButtons();
  const overlay=$('dailyDadReveal');
- const seed=morningSeed();
- const custom=chooseUnusedCustom(seed);
- const selected=custom?{category:custom.category,text:custom.text,customId:custom.id}:builtInMorningPrize(seed);
- const plan={
-  type:(seed%2===0?'gift':'scratch'),
-  category:selected.category,
-  prize:selected.text,
-  customId:selected.customId||null
- };
+ const plan=planFromUnusedCustom(unused);
  activeMorningPlan=plan;
 
  // Preview mode intentionally prevents Firestore completion writes and localStorage completion.
