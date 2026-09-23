@@ -1173,8 +1173,6 @@ body.chat-open #usConversationView .chat-status{
       <button id="homeAddStoryBtn" type="button"><span>◎</span><div><b>Add Story</b><small>Share a photo or video</small></div></button>
       <button id="homeCreatePostBtn" type="button"><span>▣</span><div><b>Create Post</b><small>Share a permanent moment ♡</small></div></button>
       <button id="homeDadMessageBtn" class="dad-only" type="button" hidden><span>♡</span><div><b>Message for Microbia</b><small>Update her Home message</small></div></button>
-      <button id="homeTestMorningBtn" class="dad-only" type="button" hidden><span>🎁</span><div><b>Test Morning Surprise</b><small>Preview Microbia’s daily surprise</small></div></button>
-      <button id="homeManageSurprisesBtn" class="dad-only" type="button" hidden><span>✦</span><div><b>Morning Surprises</b><small>Add your own joke, quote, or love message</small></div></button>
       <button id="homePreviewMicrobiaMorningBtn" class="dad-only" type="button" hidden><span>♡</span><div><b>Preview Microbia’s Morning</b><small>See exactly what she’ll see without using it</small></div></button>
     </div>
   </div>
@@ -1418,7 +1416,7 @@ body.chat-open #usConversationView .chat-status{
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-app.js";
 import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-auth.js";
-import { getFirestore, doc, setDoc, onSnapshot, serverTimestamp, collection, addDoc, query, orderBy, deleteDoc, updateDoc, getDoc, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-firestore.js";
+import { getFirestore, doc, setDoc, onSnapshot, serverTimestamp, collection, addDoc, query, orderBy, deleteDoc, updateDoc, getDoc,getDocs, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-firestore.js";
 import { getMessaging, getToken, onMessage, isSupported } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-messaging.js";
 
 const firebaseConfig = {
@@ -1751,6 +1749,14 @@ function chooseUnusedCustom(seed){
  if(!unused.length)return null;
  return unused[(seed>>>2)%unused.length];
 }
+async function refreshUnusedDadSurprises(){
+ try{
+  const snap=await getDocs(collection(db,'dadSurprises'));
+  customMorningSurprises=snap.docs.map(d=>({id:d.id,...d.data()}));
+  renderCustomSurprises();
+ }catch(e){console.warn('Could not refresh Dad surprises:',e);}
+ return customMorningSurprises.filter(x=>!x.used);
+}
 function todayMorningPlan(){
  const seed=morningSeed();
  const forced=$('dailyDadReveal')?.dataset.forceMorningTest;
@@ -1780,7 +1786,8 @@ function resetMorningGiftButtons(){
   b.disabled=false;
  });
 }
-function beginDailySurprise(){
+async function beginDailySurprise(){
+ await refreshUnusedDadSurprises();
  resetMorningGiftButtons();
  $('dailyDadMessageStage').hidden=true;$('dailySurpriseStage').hidden=false;
  const plan=todayMorningPlan();activeMorningPlan=plan;
@@ -1841,7 +1848,8 @@ $('dailyDadContinue').onclick=beginDailySurprise;
 $('dailyDadRevealClose').onclick=closeDailyDadReveal;
 
 
-function launchMicrobiaMorningPreview(){
+async function launchMicrobiaMorningPreview(){
+ await refreshUnusedDadSurprises();
  resetMorningGiftButtons();
  const overlay=$('dailyDadReveal');
  const seed=morningSeed();
@@ -1916,10 +1924,10 @@ $('homePreviewMicrobiaMorningBtn').onclick=()=>{
  $('homeCreateMenu').hidden=true;$('homeCreateBtn').setAttribute('aria-expanded','false');
  launchMicrobiaMorningPreview();
 };
-$('homeTestMorningBtn').onclick=()=>{
+$('homeTestMorningBtn')?.addEventListener('click',()=>{
  $('homeCreateMenu').hidden=true;$('homeCreateBtn').setAttribute('aria-expanded','false');
  launchMorningSurpriseTest();
-};
+});
 
 let unsubMorningInteraction=null;
 function watchMorningInteraction(user){
@@ -2679,12 +2687,12 @@ document.querySelectorAll('.custom-surprise-type').forEach(btn=>btn.onclick=()=>
  selectedCustomCategory=btn.dataset.category;
  document.querySelectorAll('.custom-surprise-type').forEach(b=>b.classList.toggle('selected',b===btn));
 });
-$('homeManageSurprisesBtn').onclick=()=>{
+$('homeManageSurprisesBtn')?.addEventListener('click',()=>{
  if(!auth.currentUser||auth.currentUser.uid!==DAD_UID)return;
  $('homeCreateMenu').hidden=true;$('homeCreateBtn').setAttribute('aria-expanded','false');
  $('customSurpriseText').value='';$('customSurpriseStatus').textContent='';
  $('customSurpriseModal').hidden=false;renderCustomSurprises();
-};
+});
 $('closeCustomSurpriseBtn').onclick=()=>$('customSurpriseModal').hidden=true;
 $('cancelCustomSurpriseBtn').onclick=()=>$('customSurpriseModal').hidden=true;
 $('saveCustomSurpriseBtn').onclick=async()=>{
