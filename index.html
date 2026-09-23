@@ -1202,6 +1202,8 @@ body.chat-open #usConversationView .chat-status{
   <h3 id="dadMorningTitle">Her little surprise</h3>
   <p id="dadMorningDetails">Waiting for today’s surprise ♡</p>
   <small id="dadMorningTime"></small>
+  <button id="resetMorningSurpriseBtn" type="button" style="margin-top:12px" hidden>↻ Reset today’s surprise</button>
+  <p id="resetMorningSurpriseStatus" style="margin:8px 0 0;font-size:.86rem;color:#815765"></p>
 </section>
 </section>
 
@@ -1696,7 +1698,13 @@ function babyStepsLocalDayKey(){
  const get=t=>parts.find(p=>p.type===t)?.value||'';
  return `${get('year')}-${get('month')}-${get('day')}`;
 }
-function dailyDadRevealStorageKey(){return `babyStepsDadReveal:${MICROBIA_UID}:${babyStepsLocalDayKey()}`;}
+function dailyDadRevealStorageKey(version=0){return `babyStepsDadReveal:${MICROBIA_UID}:${babyStepsLocalDayKey()}:v${version}`;}
+async function currentMorningResetVersion(){
+ try{
+  const snap=await getDoc(doc(db,'morningResetState',babyStepsLocalDayKey()));
+  return snap.exists()?Number(snap.data()?.version||0):0;
+ }catch(e){return 0;}
+}
 function morningSeed(){
  return [...babyStepsLocalDayKey()].reduce((a,c)=>((a*31+c.charCodeAt(0))>>>0),2166136261);
 }
@@ -1796,8 +1804,12 @@ function todayMorningPlan(){
  };
 }
 async function maybeShowDailyDadReveal(user){
- if(!user||user.uid!==MICROBIA_UID||localStorage.getItem(dailyDadRevealStorageKey())==='shown')return;
+ if(!user||user.uid!==MICROBIA_UID)return;
  try{
+  const resetVersion=await currentMorningResetVersion();
+  const storageKey=dailyDadRevealStorageKey(resetVersion);
+  if(localStorage.getItem(storageKey)==='shown')return;
+  $('dailyDadReveal').dataset.storageKey=storageKey;
   const snap=await getDoc(doc(db,'shared','dadMessage')); if(!snap.exists())return;
   const message=(snap.data()?.text||'').trim(); if(!message)return;
   $('dailyDadRevealText').textContent=message;
@@ -1866,7 +1878,7 @@ function setupMorningScratch(plan){
 }
 function closeDailyDadReveal(){
  const el=$('dailyDadReveal');if(!el||el.hidden)return;
- if(el.dataset.testMode!=='true') localStorage.setItem(dailyDadRevealStorageKey(),'shown');
+ if(el.dataset.testMode!=='true') localStorage.setItem(el.dataset.storageKey||dailyDadRevealStorageKey(),'shown');
  el.classList.add('is-closing');
  setTimeout(()=>{el.hidden=true;el.setAttribute('aria-hidden','true');el.classList.remove('is-closing');delete el.dataset.testMode;delete el.dataset.forceMorningTest;delete el.dataset.testMorningType;delete el.dataset.microbiaPreview;},420);
 }
@@ -1958,14 +1970,37 @@ function watchMorningInteraction(user){
    $('dadMorningTitle').textContent='Her little surprise';
    $('dadMorningDetails').textContent='Waiting for Microbia to open today’s surprise ♡';
    $('dadMorningTime').textContent='';
+   $('resetMorningSurpriseBtn').hidden=true;
+   $('resetMorningSurpriseStatus').textContent='';
    return;
   }
   const d=snap.data();card.hidden=false;
+  $('resetMorningSurpriseBtn').hidden=false;
   $('dadMorningTitle').textContent=d.type==='gift'?`🎁 She picked gift #${d.choice}`:'✨ She scratched today’s surprise';
   $('dadMorningDetails').textContent=d.prize||'She opened her morning surprise ♡';
   const dt=d.completedAt?.toDate?.();$('dadMorningTime').textContent=dt?`Opened ${dt.toLocaleTimeString([],{hour:'numeric',minute:'2-digit'})}`:'Opened today ♡';
  });
 }
+
+
+$('resetMorningSurpriseBtn').onclick=async()=>{
+ if(!auth.currentUser||auth.currentUser.uid!==DAD_UID)return;
+ if(!confirm("Reset Microbia’s surprise for today? She’ll be able to open a new one."))return;
+ const btn=$('resetMorningSurpriseBtn');
+ btn.disabled=true;$('resetMorningSurpriseStatus').textContent='Resetting…';
+ try{
+  const day=babyStepsLocalDayKey();
+  await deleteDoc(doc(db,'morningInteractions',day));
+  const resetRef=doc(db,'morningResetState',day);
+  const resetSnap=await getDoc(resetRef);
+  const nextVersion=(resetSnap.exists()?Number(resetSnap.data()?.version||0):0)+1;
+  await setDoc(resetRef,{date:day,version:nextVersion,resetBy:DAD_UID,resetAt:serverTimestamp()},{merge:true});
+  $('resetMorningSurpriseStatus').textContent='Reset ♡ Have Microbia close and reopen Baby Steps.';
+ }catch(e){
+  console.warn('Morning reset:',e);
+  $('resetMorningSurpriseStatus').textContent='Could not reset. Try again ♡';
+ }finally{btn.disabled=false;}
+};
 
 onAuthStateChanged(auth,user=>{
  if(unsubPrenatalHistory) { unsubPrenatalHistory(); unsubPrenatalHistory=null; } if(unsubMessage) unsubMessage(); if(unsubPrenatal) unsubPrenatal(); if(unsubPregnancy) unsubPregnancy(); if(unsubMilestones) unsubMilestones(); if(unsubAppointments) unsubAppointments(); if(unsubDadProfile) unsubDadProfile(); if(unsubMicrobiaProfile) unsubMicrobiaProfile(); if(unsubStories) unsubStories(); if(unsubStoryViews) unsubStoryViews(); if(unsubChat) unsubChat();
