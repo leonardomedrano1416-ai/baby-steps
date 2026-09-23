@@ -1804,8 +1804,10 @@ document.querySelectorAll('.daily-gift').forEach(btn=>btn.onclick=async()=>{
  if(document.querySelector('.daily-gift.opened'))return;
  const plan=activeMorningPlan||todayMorningPlan();btn.classList.add('opened');
  document.querySelectorAll('.daily-gift').forEach(b=>{if(b!==btn)b.classList.add('not-picked');b.disabled=true;});
- setTimeout(()=>showMorningResult(plan.prize,plan.category),520);
- await saveMorningInteraction('gift',Number(btn.dataset.gift),plan.prize,plan);
+ window.clearTimeout(window.__babyStepsGiftRevealTimer);
+ window.__babyStepsGiftRevealTimer=setTimeout(()=>showMorningResult(plan.prize,plan.category),650);
+ // Do not block the visual reveal on Firestore. Preview mode skips this write.
+ saveMorningInteraction('gift',Number(btn.dataset.gift),plan.prize,plan);
 });
 let scratchDone=false;
 function setupMorningScratch(plan){
