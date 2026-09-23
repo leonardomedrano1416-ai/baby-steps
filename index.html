@@ -1197,14 +1197,14 @@ body.chat-open #usConversationView .chat-status{
     <button id="homeViewProfileBtn" type="button">♡ View Profile</button>
   </div>
   <div id="homePageMount"></div>
-</section>
 <section id="dadMorningCard" class="card" hidden>
   <p class="eyebrow">MICROBIA’S MORNING ♡</p>
   <h3 id="dadMorningTitle">Her little surprise</h3>
   <p id="dadMorningDetails">Waiting for today’s surprise ♡</p>
   <small id="dadMorningTime"></small>
-  <button id="testMorningSurpriseBtn" type="button" style="margin-top:12px">Test Morning Surprise ♡</button>
 </section>
+</section>
+
 <section id="page-memories" class="app-page" data-page="memories">
   <div class="page-heading"><b>OUR MEMORIES ♡</b><h2>Little moments, forever</h2><p>Milestones, photos, videos and saved Stories live here.</p></div>
   <div id="memoriesPageMount"></div>
@@ -1937,7 +1937,7 @@ function launchMorningSurpriseTest(){
    if(testType==='scratch') setupMorningScratch(plan);
  };
 }
-$('testMorningSurpriseBtn').onclick=launchMorningSurpriseTest;
+$('testMorningSurpriseBtn')?.addEventListener('click',launchMorningSurpriseTest);
 $('homePreviewMicrobiaMorningBtn').onclick=()=>{
  $('homeCreateMenu').hidden=true;$('homeCreateBtn').setAttribute('aria-expanded','false');
  launchMicrobiaMorningPreview();
