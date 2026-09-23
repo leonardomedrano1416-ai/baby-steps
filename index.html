@@ -1437,6 +1437,11 @@ const app=initializeApp(firebaseConfig), auth=getAuth(app), db=getFirestore(app)
 const VAPID_KEY="BORWgJuVa6KyOQYUV6SzOAUSStVhl3RZPqyR4eWLBezodpwfPKF8oWDEW9_FW4kxeVdjInmYOaPzxbbwUQWkCzk";
 let messaging=null, messagingSupported=false;
 const $=id=>document.getElementById(id);
+function escapeHtml(value){
+ return String(value??'').replace(/[&<>"']/g,ch=>({
+  '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'
+ }[ch]));
+}
 const todayKey=()=>new Date().toLocaleDateString('en-CA');
 let unsubMessage=null, unsubPrenatal=null, unsubPregnancy=null, unsubMilestones=null, unsubAppointments=null, unsubDadProfile=null, unsubMicrobiaProfile=null;
 let profileUploadTargetUid=null;
@@ -1821,7 +1826,7 @@ function setupMorningScratch(plan){
   if(!drawing||scratchDone)return;e.preventDefault();const r=c.getBoundingClientRect(),p=e.touches?e.touches[0]:e;
   const x=(p.clientX-r.left)*(c.width/r.width),y=(p.clientY-r.top)*(c.height/r.height);
   ctx.globalCompositeOperation='destination-out';ctx.beginPath();ctx.arc(x,y,42,0,Math.PI*2);ctx.fill();moves++;
-  if(moves>=75){scratchDone=true;c.style.transition='opacity .45s';c.style.opacity='0';setTimeout(()=>{c.style.pointerEvents='none';showMorningResult(prize);},430);saveMorningInteraction('scratch','scratched',prize);}
+  if(moves>=75){scratchDone=true;c.style.transition='opacity .45s';c.style.opacity='0';setTimeout(()=>{c.style.pointerEvents='none';showMorningResult(prize,plan.category);},430);saveMorningInteraction('scratch','scratched',prize,plan);}
  };
  c.style.opacity='1';c.style.pointerEvents='auto';
  c.onpointerdown=e=>{drawing=true;scratch(e)};c.onpointermove=scratch;c.onpointerup=c.onpointercancel=()=>drawing=false;
