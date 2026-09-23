@@ -1274,6 +1274,14 @@ body.chat-open #usConversationView .chat-status{
       <button id="individualChangePhotoBtn" class="secondary-btn" type="button" hidden>Change photo</button>
       <button id="individualAddStoryBtn" type="button" hidden>＋ Add Story</button>
     </div>
+    <div id="dadMorningProfileActions" class="individual-profile-actions" hidden style="margin-top:10px">
+      <button id="profileAddCustomSurpriseBtn" class="secondary-btn" type="button">✦ Add custom surprise</button>
+      <button id="profilePreviewTodaySurpriseBtn" type="button">♡ Preview today’s message</button>
+    </div>
+    <div id="profileTodaySurprisePreview" hidden style="margin-top:12px;padding:12px 14px;border-radius:16px;background:rgba(255,255,255,.72);text-align:left">
+      <small id="profileTodaySurpriseCategory" style="font-weight:800;color:#8d435c"></small>
+      <p id="profileTodaySurpriseText" style="margin:6px 0 0;color:#5f3544"></p>
+    </div>
   </section>
 
   <section class="card individual-posts-card">
@@ -1595,6 +1603,8 @@ function renderIndividualProfile(uid){
   $('individualViewStoryBtn').hidden=!stories.length;
   $('individualChangePhotoBtn').hidden=!isOwn;
   $('individualAddStoryBtn').hidden=!isOwn;
+  $('dadMorningProfileActions').hidden=!(isOwn && uid===DAD_UID);
+  if(!(isOwn && uid===DAD_UID)) $('profileTodaySurprisePreview').hidden=true;
 }
 
 function openViewedProfileStory(){
@@ -2722,6 +2732,28 @@ $('saveCustomSurpriseBtn').onclick=async()=>{
   $('customSurpriseText').value='';$('customSurpriseStatus').textContent='Saved secretly for Microbia ♡';
  }catch(e){$('customSurpriseStatus').textContent='Could not save. Try again ♡';console.warn(e);}
  finally{$('saveCustomSurpriseBtn').disabled=false;}
+};
+
+$('profileAddCustomSurpriseBtn').onclick=()=>{
+ if(!auth.currentUser||auth.currentUser.uid!==DAD_UID)return;
+ $('customSurpriseText').value='';
+ $('customSurpriseStatus').textContent='';
+ $('customSurpriseModal').hidden=false;
+ renderCustomSurprises();
+};
+$('profilePreviewTodaySurpriseBtn').onclick=async()=>{
+ if(!auth.currentUser||auth.currentUser.uid!==DAD_UID)return;
+ const btn=$('profilePreviewTodaySurpriseBtn');
+ btn.disabled=true; btn.textContent='Loading today’s message…';
+ try{
+  const unused=await refreshUnusedDadSurprises();
+  const plan=planFromUnusedCustom(unused);
+  $('profileTodaySurpriseCategory').textContent=categoryLabel(plan.category);
+  $('profileTodaySurpriseText').textContent=plan.prize;
+  $('profileTodaySurprisePreview').hidden=false;
+ }finally{
+  btn.disabled=false; btn.textContent='♡ Preview today’s message';
+ }
 };
 
 $('homeDadMessageBtn').addEventListener('click',()=>{
