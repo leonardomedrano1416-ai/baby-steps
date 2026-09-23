@@ -1779,7 +1779,7 @@ async function refreshUnusedDadSurprises(){
   return customMorningSurprises.filter(x=>x.used!==true);
  }
 }
-async function await planFromUnusedCustom(unused){
+async function planFromUnusedCustom(unused){
  const resetVersion=await currentMorningResetVersion();
  // Mix the reset counter into today's seed. Every reset advances to a different
  // built-in message while keeping normal one-surprise-per-day behavior.
